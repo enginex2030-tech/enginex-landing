@@ -34,6 +34,7 @@ test('configured API origin drives registration, pricing, and installer requests
   const config = read('config.js');
   assert.match(html, /https?:\/\/[^" ]+\/register/);
   assert.ok(html.indexOf('/config.js') < html.indexOf('/marketing.js'));
+  assert.match(html, /\/marketing\.js\?v=[a-z0-9-]+/i);
   assert.ok(installHtml.indexOf('/config.js') < installHtml.indexOf('/install.js'));
   assert.match(js, /window\.__ENGINEX_API_URL__/);
   assert.match(js, /\/api\/admin\/plans/);
