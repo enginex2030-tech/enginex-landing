@@ -42,6 +42,15 @@ test('configured API origin drives registration, pricing, and installer requests
   assert.match(config, /window\.__ENGINEX_API_URL__\s*=\s*"https?:\/\//);
 });
 
+test('pricing and product proof contain no fabricated marketing data', () => {
+  const html = read('index.html');
+  const js = read('marketing.js');
+  assert.ok(!html.includes('data-period='), 'Obsolete billing toggle remains in the page');
+  assert.ok(!js.includes('أضف اسم العميل'), 'Customer testimonial placeholder remains');
+  assert.match(js, /دليل المنتج قبل الشراء/);
+  assert.match(js, /Number\(x\.annualPrice\)>0&&Number\(x\.biennialPrice\)>0/);
+});
+
 test('build output has no unresolved config markers or base64 images', () => {
   const allText = ['index.html', 'about.html', 'install.html', 'offline.html', 'privacy.html', 'terms.html', 'marketing.js', 'install.js', 'config.js'].map(read).join('\n');
   assert.ok(!allText.includes('__VITE_API_'), 'Unresolved API configuration token');

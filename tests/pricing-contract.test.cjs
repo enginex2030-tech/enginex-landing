@@ -27,7 +27,7 @@ async function load(payload, ok = true) {
 
 test('pricing supports both central administration response formats', async () => {
   const plan = { isActive: true, annualPrice: 1475, biennialPrice: 2650 };
-  for (const payload of [[plan], { data: [plan] }]) {
+  for (const payload of [plan, [plan], { data: [plan] }]) {
     const result = await load(payload);
     assert.equal(result.plan, plan);
     assert.equal(result.request.url, 'https://app.enginex2030.com/api/admin/plans');
@@ -37,10 +37,11 @@ test('pricing supports both central administration response formats', async () =
 });
 
 test('changed server prices are used on the next load without fixed fallback prices', async () => {
-  assert.equal((await load([{ annualPrice: 111 }])).plan.annualPrice, 111);
-  assert.equal((await load({ data: [{ annualPrice: 222 }] })).plan.annualPrice, 222);
+  assert.equal((await load([{ annualPrice: 111, biennialPrice: 200 }])).plan.annualPrice, 111);
+  assert.equal((await load({ data: [{ annualPrice: 222, biennialPrice: 400 }] })).plan.annualPrice, 222);
   assert.equal((await load({ error: 'unavailable' }, false)).plan, null);
   assert.ok(!(await load([])).plan);
+  assert.ok(!(await load([{ annualPrice: 111, biennialPrice: 0 }])).plan);
 });
 
 test('saved landing-page anchors and application login remain available', () => {
