@@ -47,6 +47,7 @@ test('pricing and product proof contain no fabricated marketing data', () => {
   const html = read('index.html');
   const js = read('marketing.js');
   assert.ok(!html.includes('data-period='), 'Obsolete billing toggle remains in the page');
+  assert.ok(!html.includes('remove-admin-pricing.js'), 'Legacy pricing-copy override remains active');
   assert.ok(!js.includes('أضف اسم العميل'), 'Customer testimonial placeholder remains');
   assert.match(js, /دليل المنتج قبل الشراء/);
   assert.match(js, /Number\(x\.annualPrice\)>0&&Number\(x\.biennialPrice\)>0/);
