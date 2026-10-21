@@ -53,6 +53,37 @@ test('pricing and product proof contain no fabricated marketing data', () => {
   assert.match(js, /Number\(x\.annualPrice\)>0&&Number\(x\.biennialPrice\)>0/);
 });
 
+test('English URL is a static English page with its own canonical and shared hreflang', () => {
+  const ar = read('index.html');
+  const en = read('en/index.html');
+  assert.match(en, /<html lang="en" dir="ltr"/);
+  assert.match(en, /<link rel="canonical" href="https:\/\/enginex2030\.com\/en\/">/);
+  assert.match(en, /<meta property="og:locale" content="en_US">/);
+  assert.match(en, /data-i="heroH">Know every project’s real margin/);
+  assert.ok(!/data-i="heroH">[^<]*[؀-ۿ]/.test(en), 'English hero heading still contains Arabic');
+  assert.match(ar, /<link rel="canonical" href="https:\/\/enginex2030\.com\/">/);
+  for (const page of [ar, en]) {
+    assert.ok(page.includes('<link rel="alternate" hreflang="ar" href="https://enginex2030.com/">'));
+    assert.ok(page.includes('<link rel="alternate" hreflang="en" href="https://enginex2030.com/en/">'));
+    assert.ok(page.includes('<link rel="alternate" hreflang="x-default" href="https://enginex2030.com/">'));
+  }
+});
+
+test('page language follows the URL path, not the browser or saved preference', () => {
+  const js = read('marketing.js') + read('seo.js');
+  assert.ok(!js.includes('navigator.language'), 'Browser language still selects the page language');
+  assert.ok(!js.includes('ex-lang'), 'Saved language still overrides the URL');
+  assert.ok(!js.includes('history.replaceState'), 'Language is still written into the URL');
+});
+
+test('public pages publish no personal bank or payment account details', () => {
+  const allText = ['index.html', 'en/index.html', 'about.html', 'install.html', 'privacy.html', 'terms.html', 'marketing.js'].map(read).join('\n');
+  for (const marker of ['IBAN', 'Account number', 'رقم الحساب', 'ipn.eg', 'InstaPay', 'التحويل البنكي']) {
+    assert.ok(!allText.includes(marker), 'Payment account detail remains: ' + marker);
+  }
+  assert.ok(!read('../.deploy/default.conf').includes('ipn.eg'), 'CSP still allows the InstaPay image host');
+});
+
 test('build output has no unresolved config markers or base64 images', () => {
   const allText = ['index.html', 'about.html', 'install.html', 'offline.html', 'privacy.html', 'terms.html', 'marketing.js', 'install.js', 'config.js'].map(read).join('\n');
   assert.ok(!allText.includes('__VITE_API_'), 'Unresolved API configuration token');

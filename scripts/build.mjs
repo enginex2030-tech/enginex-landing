@@ -55,6 +55,40 @@ async function copyContents(source, destination) {
   }
 }
 
+const escapeHtml = (value) => String(value).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+
+// Reads the T translation table from marketing.js so the static English page
+// uses exactly the copy the browser would switch to.
+async function readTranslations() {
+  const source = await readFile(path.join(sourceDir, 'marketing.js'), 'utf8');
+  const match = source.match(/T=(\{ar:\{.*?\},en:\{.*?\}\});const D=/s);
+  if (!match) throw new Error('marketing.js translation table T was not found.');
+  return new Function('return ' + match[1])();
+}
+
+// Turns the Arabic index.html into a crawlable English page: language,
+// direction, head metadata and every data-i text node are written statically.
+function localizeEnglish(html, en) {
+  const replaceOnce = (value, pattern, replacement) => {
+    if (!pattern.test(value)) throw new Error('English page build: pattern not found ' + pattern);
+    return value.replace(pattern, replacement);
+  };
+  let page = html;
+  page = replaceOnce(page, /<html lang="ar" dir="rtl"/, '<html lang="en" dir="ltr"');
+  page = replaceOnce(page, /<title>[^<]*<\/title>/, `<title>${escapeHtml(en.metaTitle)}</title>`);
+  page = replaceOnce(page, /(<meta name="description" content=")[^"]*"/, `$1${escapeHtml(en.metaDesc)}"`);
+  page = replaceOnce(page, /(<link rel="canonical" href=")[^"]*"/, '$1https://enginex2030.com/en/"');
+  page = replaceOnce(page, /(<meta property="og:locale" content=")ar_SA"/, '$1en_US"');
+  page = replaceOnce(page, /(<meta property="og:locale:alternate" content=")en_US"/, '$1ar_SA"');
+  page = replaceOnce(page, /(<meta property="og:title" content=")[^"]*"/, `$1${escapeHtml(en.metaTitle)}"`);
+  page = replaceOnce(page, /(<meta property="og:url" content=")[^"]*"/, '$1https://enginex2030.com/en/"');
+  page = replaceOnce(page, /(<button class="tool" id="lang"[^>]*>)EN</, '$1AR<');
+  return page.replace(/(<([a-z0-9]+)\b[^>]*\bdata-i="([^"]+)"[^>]*>)[^<]*(<\/\2>)/g, (whole, open, tag, key, close) => {
+    if (!(key in en)) throw new Error('English page build: missing translation for data-i="' + key + '"');
+    return open + escapeHtml(en[key]) + close;
+  });
+}
+
 async function replaceTokens(directory, apiBase, apiHost) {
   const textExtensions = new Set(['.html', '.js', '.css', '.xml', '.txt', '.svg', '.webmanifest']);
   for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -83,7 +117,9 @@ await mkdir(deployDir, { recursive: true });
 await copyContents(sourceDir, distDir);
 // Publish a stable English URL so Google can index it as a separate language version.
 await mkdir(path.join(distDir, 'en'), { recursive: true });
-await cp(path.join(sourceDir, 'index.html'), path.join(distDir, 'en', 'index.html'));
+const translations = await readTranslations();
+const arabicIndex = await readFile(path.join(sourceDir, 'index.html'), 'utf8');
+await writeFile(path.join(distDir, 'en', 'index.html'), localizeEnglish(arabicIndex, translations.en));
 await copyContents(publicDir, distDir);
 // Keep existing public asset URLs usable by saved links and installer pages.
 await copyContents(path.join(root, 'assets'), path.join(distDir, 'assets'));
