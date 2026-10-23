@@ -77,6 +77,83 @@
 .pricecard.best::after { content:""; position:absolute; inset:2px; z-index:-1; background:var(--mo-card); }
 @keyframes mo-spin { to { transform:rotate(1turn); } }
 
+/* AI purchase invoices: dark feature section with an illustrative (not real-data) extraction demo. */
+.ai { background:var(--mo-ink); color:var(--mo-paper); }
+.ai h2 { color:#fff; }
+.ai .eyebrow { color:var(--mo-bronze-l); }
+.ai .head p { color:#c4cfd0; }
+.ai-grid { display:grid; grid-template-columns:1fr 1.05fr; gap:56px; align-items:center; }
+.ai .head { margin:0; }
+.ai-steps { list-style:none; margin:28px 0 0; padding:0; border-block-start:1px solid #ffffff22; }
+.ai-steps li { display:grid; grid-template-columns:44px 1fr; gap:12px; padding:14px 0; border-block-end:1px solid #ffffff22; }
+.ai-steps strong { font:800 14px ExEn,sans-serif; color:var(--mo-bronze-l); }
+.ai-steps b { display:block; color:#fff; font-size:15px; }
+.ai-steps span { color:#aebcbe; font-size:13px; }
+/* 3D stage: perspective on the demo, depth on the layers. Tilt comes from --tx/--ty (motion.js, fine pointers only). */
+.ai { overflow:clip; }
+.ai-demo { --dir:1; --ry0:12deg; position:relative; perspective:1300px; perspective-origin:50% 40%; padding-block:28px; }
+html[dir=ltr] .ai-demo { --dir:-1; --ry0:-12deg; }
+.ai-stage { transform-style:preserve-3d; transform:rotateX(calc(12deg + var(--ty,0deg))) rotateY(calc(var(--ry0) + var(--tx,0deg))); transition:transform .6s var(--mo-ease); }
+.ai-float { position:relative; display:grid; grid-template-columns:1.05fr 1fr; gap:22px; align-items:start; transform-style:preserve-3d; }
+.ai-floor { position:absolute; inset:-8% -3%; transform:translateZ(-90px); border:1px solid #f1cfa338; background:radial-gradient(60% 55% at 50% 50%,#a9744666,transparent 72%),repeating-linear-gradient(0deg,#f1cfa314 0 1px,transparent 1px 34px),repeating-linear-gradient(90deg,#f1cfa314 0 1px,transparent 1px 34px),#0c181d; box-shadow:0 60px 90px -40px #000; }
+.ai-doc { position:relative; overflow:hidden; display:flex; flex-direction:column; gap:11px; min-height:320px; padding:20px; background:var(--mo-card); color:var(--mo-ink); transform:translateZ(10px); box-shadow:0 30px 50px -18px rgba(0,0,0,.7),0 0 0 1px #ffffff24; }
+.ai-doc b { font-size:13px; padding-block-end:10px; border-block-end:1px solid var(--mo-rule); }
+.ai-doc i { display:block; height:8px; background:#e3ded3; }
+.ai-doc i:nth-of-type(2n) { width:74%; } .ai-doc i:nth-of-type(3n) { width:52%; } .ai-doc i:last-of-type { width:38%; margin-block-start:auto; background:#d6cfc1; }
+.ai-doc::after { content:""; position:absolute; inset:-20% -70%; pointer-events:none; background:linear-gradient(105deg,transparent 42%,rgba(255,255,255,.7) 50%,transparent 58%); transform:translateX(-55%); }
+.ai-scan { position:absolute; inset:0; pointer-events:none; background:linear-gradient(transparent 78%,rgba(169,116,70,.25) 95%,var(--mo-bronze-l) 99.4%,#fff 100%); opacity:0; }
+.ai-panel { display:flex; flex-direction:column; gap:10px; transform-style:preserve-3d; }
+.ai-fields { display:grid; gap:9px; transform-style:preserve-3d; }
+.ai-field, .ai-new { --z:40px; position:relative; padding:9px 12px; background:#1c3038; border:1px solid #ffffff1f; border-inline-start:2px solid var(--mo-bronze-l); transform:translateZ(var(--z)); box-shadow:0 18px 30px -14px rgba(0,0,0,.75); }
+.ai-field:nth-child(2) { --z:56px; } .ai-field:nth-child(3) { --z:72px; } .ai-field:nth-child(4) { --z:88px; } .ai-field:nth-child(5) { --z:104px; }
+.ai-field small { display:block; color:#aebcbe; font-size:11px; }
+.ai-field i { display:block; height:8px; margin-block-start:6px; background:linear-gradient(90deg,var(--mo-bronze-l),#fff3e0); box-shadow:0 0 12px #f1cfa366; transform-origin:right; }
+html[dir=ltr] .ai-field i { transform-origin:left; }
+.ai-field:nth-child(1) i { width:80%; } .ai-field:nth-child(2) i { width:46%; } .ai-field:nth-child(3) i { width:38%; } .ai-field:nth-child(4) i { width:30%; } .ai-field:nth-child(5) i { width:56%; }
+.ai-new { --z:140px; border:1px solid var(--mo-bronze); background:#2a2a22; box-shadow:0 24px 40px -14px rgba(0,0,0,.8),0 0 28px -6px #a97446aa; }
+.ai-new b { display:block; color:var(--mo-bronze-l); font-size:13px; }
+.ai-new small { color:#c4cfd0; font-size:11px; }
+.ai-btn { align-self:start; margin-block-start:4px; padding:10px 14px; background:var(--mo-bronze); color:#fff; font-size:13px; font-weight:800; transform:translateZ(60px); box-shadow:0 16px 26px -12px rgba(0,0,0,.7); }
+@media (max-width:900px) { .ai-grid { grid-template-columns:1fr; gap:32px; } }
+@media (max-width:520px), (pointer:coarse) {
+  .ai-demo { perspective:900px; }
+  .ai-stage { transform:rotateX(8deg) rotateY(calc(var(--ry0) * .4)); }
+  .ai-field, .ai-new { box-shadow:0 10px 18px -10px rgba(0,0,0,.7); }
+}
+@media (max-width:520px) {
+  .ai-float { grid-template-columns:1fr; } .ai-doc { min-height:210px; }
+  /* Shallower depth on phones so the nearest layers are not magnified past the screen edge. */
+  .ai-demo { perspective:1600px; }
+  .ai-field { --z:12px; } .ai-field:nth-child(2) { --z:18px; } .ai-field:nth-child(3) { --z:24px; } .ai-field:nth-child(4) { --z:30px; } .ai-field:nth-child(5) { --z:36px; }
+  .ai-new { --z:46px; } .ai-btn { transform:translateZ(20px); }
+}
+@media (prefers-reduced-motion:no-preference) {
+  .ai-demo.show .ai-stage { animation:mo-stage-in 1.2s var(--mo-ease) backwards; }
+  .ai-demo.show .ai-float { animation:mo-float 7s 1.2s ease-in-out infinite alternate; }
+  .ai-demo.show .ai-doc::after { animation:mo-sheen 5.5s 1.4s ease-in-out infinite; }
+  .ai-demo.show .ai-scan { animation:mo-scan 3.4s .5s var(--mo-ease) infinite; }
+  .ai-field, .ai-new { opacity:0; }
+  .ai-field i { transform:scaleX(0); }
+  .ai-demo.show .ai-field, .ai-demo.show .ai-new { animation:mo-fly .8s var(--mo-ease) both; }
+  .ai-demo.show .ai-field i { animation:mo-fill .55s var(--mo-ease) forwards; }
+  .ai-demo.show .ai-field:nth-child(1), .ai-demo.show .ai-field:nth-child(1) i { animation-delay:1s; }
+  .ai-demo.show .ai-field:nth-child(2), .ai-demo.show .ai-field:nth-child(2) i { animation-delay:1.15s; }
+  .ai-demo.show .ai-field:nth-child(3), .ai-demo.show .ai-field:nth-child(3) i { animation-delay:1.3s; }
+  .ai-demo.show .ai-field:nth-child(4), .ai-demo.show .ai-field:nth-child(4) i { animation-delay:1.45s; }
+  .ai-demo.show .ai-field:nth-child(5), .ai-demo.show .ai-field:nth-child(5) i { animation-delay:1.6s; }
+  .ai-demo.show .ai-new { animation-delay:1.95s; }
+}
+/* Fields fly out of the invoice (sideways toward it, flat) into their own depth. */
+@keyframes mo-fly { from { opacity:0; transform:translate3d(calc(var(--dir) * 70%),0,0) scale(.85); } to { opacity:1; transform:translateZ(var(--z)); } }
+@keyframes mo-stage-in { from { opacity:0; transform:rotateX(38deg) rotateY(calc(var(--ry0) * -1)) translateY(40px); } }
+@keyframes mo-float { to { transform:translateY(-10px) rotateZ(calc(var(--dir) * -.6deg)); } }
+@keyframes mo-sheen { 0%, 55% { transform:translateX(-55%); } 100% { transform:translateX(55%); } }
+@keyframes mo-scan { 0% { transform:translateY(-100%); opacity:1; } 62% { transform:none; opacity:1; } 78%, 100% { transform:none; opacity:0; } }
+@keyframes mo-fill { to { transform:none; } }
+
+/* Product proof now holds two cards; keep them side by side instead of half an empty four-column row. */
+@media (min-width:720px) { .testimonialgrid { grid-template-columns:repeat(2,1fr); } }
+
 /* 6. Footer: reveal-from-under on scroll, oversized wordmark, line hover links. */
 .footer { overflow:hidden; }
 .foot-mark { margin-block-start:32px; font:900 clamp(64px,17vw,232px)/.82 ExEn,sans-serif; letter-spacing:-.045em; text-align:center; direction:ltr; white-space:nowrap; user-select:none; color:transparent; -webkit-text-stroke:1px rgba(241,207,163,.45); background:linear-gradient(180deg,rgba(241,207,163,.4),transparent 92%); -webkit-background-clip:text; background-clip:text; }
