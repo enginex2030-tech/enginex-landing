@@ -1,7 +1,7 @@
 {
   "name": "ENGINEX2030",
   "short_name": "ENGINEX2030",
-  "description": "منصة الأعمال الهندسية السحابية",
+  "description": "نظام محاسبي سحابي للمقاولات والبناء والقطاعات المرتبطة بها",
   "start_url": "/owner-login",
   "scope": "/",
   "display": "standalone",
