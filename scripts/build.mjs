@@ -89,6 +89,13 @@ function localizeEnglish(html, en) {
   });
 }
 
+// Pre-splits data-split headings into word spans so the hero word reveal starts on first paint.
+// Words, never letters, so Arabic shaping is preserved; marketing.js keeps these spans when the text matches.
+function splitWords(html) {
+  return html.replace(/(<([a-z0-9]+)\b[^>]*\bdata-split\b[^>]*>)([^<]*)(<\/\2>)/g, (whole, open, tag, text, close) =>
+    open + text.split(' ').map((word) => '<span class="w">' + word + '</span>').join(' ') + close);
+}
+
 async function replaceTokens(directory, apiBase, apiHost) {
   const textExtensions = new Set(['.html', '.js', '.css', '.xml', '.txt', '.svg', '.webmanifest']);
   for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -119,7 +126,8 @@ await copyContents(sourceDir, distDir);
 await mkdir(path.join(distDir, 'en'), { recursive: true });
 const translations = await readTranslations();
 const arabicIndex = await readFile(path.join(sourceDir, 'index.html'), 'utf8');
-await writeFile(path.join(distDir, 'en', 'index.html'), localizeEnglish(arabicIndex, translations.en));
+await writeFile(path.join(distDir, 'en', 'index.html'), splitWords(localizeEnglish(arabicIndex, translations.en)));
+await writeFile(path.join(distDir, 'index.html'), splitWords(arabicIndex));
 await copyContents(publicDir, distDir);
 // Keep existing public asset URLs usable by saved links and installer pages.
 await copyContents(path.join(root, 'assets'), path.join(distDir, 'assets'));

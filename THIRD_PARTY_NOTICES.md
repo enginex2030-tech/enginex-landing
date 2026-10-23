@@ -12,6 +12,10 @@ The original HTML and Nginx configuration identify the embedded hero scene as a 
 
 Cairo Arabic and Latin WOFF2 font files are included in public/fonts/ and distributed under the SIL Open Font License, version 1.1. The complete license and source copyright notice are in LICENSES/Cairo-OFL.txt.
 
+## Landing motion layer
+
+src/motion.css and src/motion.js are original vanilla CSS/JS written for this site. They follow interaction patterns shown in Vengeance UI (MIT, https://github.com/Ashutoshx7/VengeanceUI): stagger text, expandable bento grid, animated number, glow border card, animated footer and line hover link. They also follow patterns shown in Skiper UI (https://skiper-ui.com): progressive blur and card stack scroll. No source code from either library is copied or bundled, and no React, Tailwind or framer-motion runtime is added.
+
 ## Browser-loaded libraries and services
 
 The hero iframe loads Tailwind Play CDN, Iconify iconify-icon 1.0.7, and GSAP 3.12.2 with ScrollTrigger from their public CDNs. It also requests Google Fonts. The page loads Google Analytics. The exact external hosts and local design assets are listed in ASSET_INVENTORY.md. These are browser runtime dependencies, not npm packages.

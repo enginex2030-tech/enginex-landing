@@ -1,0 +1,98 @@
+/* ENGINEX motion layer. Original vanilla implementations of patterns seen in Vengeance UI (MIT) and Skiper UI.
+   Compositor-only animation (transform/opacity), CSS-first, and every effect respects prefers-reduced-motion. */
+:root { --mo-ink:#17282e; --mo-paper:#f4f1ea; --mo-card:#fffdf8; --mo-rule:#c9c9bf; --mo-bronze:#a97446; --mo-bronze-l:#f1cfa3; --mo-ease:cubic-bezier(.2,.75,.2,1); }
+
+/* 1. Hero: staggered word reveal (words, never letters, so Arabic shaping stays intact). */
+.hero h1 .w { display:inline-block; }
+@media (prefers-reduced-motion:no-preference) {
+  .hero h1 .w { opacity:0; transform:translateY(.42em); animation:mo-word .75s var(--mo-ease) forwards; }
+  .hero h1 .w:nth-child(2) { animation-delay:.055s; } .hero h1 .w:nth-child(3) { animation-delay:.11s; }
+  .hero h1 .w:nth-child(4) { animation-delay:.165s; } .hero h1 .w:nth-child(5) { animation-delay:.22s; }
+  .hero h1 .w:nth-child(6) { animation-delay:.275s; } .hero h1 .w:nth-child(7) { animation-delay:.33s; }
+  .hero h1 .w:nth-child(8) { animation-delay:.385s; } .hero h1 .w:nth-child(9) { animation-delay:.44s; }
+  .hero h1 .w:nth-child(10) { animation-delay:.495s; } .hero h1 .w:nth-child(11) { animation-delay:.55s; }
+  .hero h1 .w:nth-child(12) { animation-delay:.605s; } .hero h1 .w:nth-child(n+13) { animation-delay:.66s; }
+  .hero .lead { animation:mo-rise .8s .42s var(--mo-ease) both; }
+  .hero .hero-actions { animation:mo-rise .8s .52s var(--mo-ease) both; }
+  .hero .assurance { animation:mo-rise .8s .62s var(--mo-ease) both; }
+}
+@keyframes mo-word { to { opacity:1; transform:none; } }
+@keyframes mo-rise { from { opacity:0; transform:translateY(14px); } }
+
+/* 2. Hero: progressive blur under the content, over the photo only. */
+.hero-blur { position:absolute; inset-inline:0; inset-block-end:0; height:36%; z-index:-1; pointer-events:none; }
+.hero-blur i { position:absolute; inset:0; }
+.hero-blur i:nth-child(1) { -webkit-backdrop-filter:blur(1px); backdrop-filter:blur(1px); -webkit-mask-image:linear-gradient(transparent 0,#000 20%,#000 45%,transparent 65%); mask-image:linear-gradient(transparent 0,#000 20%,#000 45%,transparent 65%); }
+.hero-blur i:nth-child(2) { -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px); -webkit-mask-image:linear-gradient(transparent 20%,#000 45%,#000 65%,transparent 85%); mask-image:linear-gradient(transparent 20%,#000 45%,#000 65%,transparent 85%); }
+.hero-blur i:nth-child(3) { -webkit-backdrop-filter:blur(7px); backdrop-filter:blur(7px); -webkit-mask-image:linear-gradient(transparent 45%,#000 65%,#000 85%,transparent 100%); mask-image:linear-gradient(transparent 45%,#000 65%,#000 85%,transparent 100%); }
+.hero-blur i:nth-child(4) { -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); -webkit-mask-image:linear-gradient(transparent 65%,#000 90%); mask-image:linear-gradient(transparent 65%,#000 90%); }
+.hero-blur::after { content:""; position:absolute; inset:0; background:linear-gradient(transparent 40%,rgba(8,19,29,.42)); }
+@media (max-width:767px), (pointer:coarse) {
+  .hero-blur i:nth-child(n+3) { display:none; }
+  .hero-blur i:nth-child(2) { -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); -webkit-mask-image:linear-gradient(transparent 25%,#000 70%); mask-image:linear-gradient(transparent 25%,#000 70%); }
+}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))) { .hero-blur i { display:none; } }
+
+/* 3. Workflow: sticky card stack (pure CSS, no scroll listeners). */
+#workflow { --mo-top:104px; overflow:clip; } /* hidden would make the section a scroll container and break sticky */
+#workflow .timeline { gap:0; }
+#workflow .step { position:sticky; inset-block-start:calc(var(--mo-top) + var(--k,0) * 14px); grid-template-columns:76px 1fr; min-height:210px; margin:0 0 28px !important; padding:28px 26px 30px; border:1px solid var(--mo-rule); background:var(--mo-card); box-shadow:0 -16px 34px -26px rgba(23,40,46,.55); }
+#workflow .step:last-child { margin-block-end:0 !important; }
+#workflow .step:nth-child(2) { --k:1; } #workflow .step:nth-child(3) { --k:2; } #workflow .step:nth-child(4) { --k:3; } #workflow .step:nth-child(5) { --k:4; } #workflow .step:nth-child(6) { --k:5; }
+#workflow .step strong { font:900 46px/1 ExEn,ExAr,sans-serif; letter-spacing:-.04em; color:var(--mo-bronze); }
+#workflow .step .inherit { color:var(--mo-bronze); font-weight:800; }
+@media (min-width:901px) { #workflow .head { position:sticky; inset-block-start:var(--mo-top); align-self:start; } }
+@media (max-width:767px) {
+  #workflow { --mo-top:84px; }
+  #workflow .step { grid-template-columns:52px 1fr; min-height:0; padding:22px 18px 24px; margin-block-end:18px !important; inset-block-start:calc(var(--mo-top) + var(--k,0) * 10px); }
+  #workflow .step strong { font-size:32px; }
+}
+
+/* 4. Modules: expandable bento. */
+.group header { position:relative; transition:background-color .35s ease,color .35s ease; }
+.group h3 { flex:1; }
+.group-toggle { all:unset; cursor:pointer; display:block; font:inherit; color:inherit; }
+.group-toggle::after { content:""; position:absolute; inset:0; }
+.group-toggle:focus-visible { outline:2px solid var(--mo-bronze); outline-offset:4px; }
+.group-count { font:800 12px ExEn,sans-serif; color:var(--mo-bronze); }
+.group header::after { content:"+"; font:400 22px/1 ExEn,sans-serif; transition:transform .35s var(--mo-ease); }
+.group.is-open header { background:var(--mo-ink); color:var(--mo-paper); }
+.group.is-open header::after { transform:rotate(45deg); }
+.group.is-open .glyph, .group.is-open .group-count { color:var(--mo-bronze-l); }
+.group .module > div { display:grid; grid-template-rows:auto 0fr; transition:grid-template-rows .45s var(--mo-ease); }
+.group .module span { overflow:hidden; min-height:0; opacity:0; transition:opacity .3s ease; }
+.group.is-open .module > div { grid-template-rows:auto 1fr; }
+.group.is-open .module span { opacity:1; transition-delay:.12s; }
+.group .module i { color:var(--mo-bronze); }
+@media (min-width:1024px) {
+  .groups { display:flex; }
+  .group { flex:1 1 0; min-width:0; transition:flex-grow .55s var(--mo-ease); }
+  .group.is-open { flex-grow:2.1; }
+}
+
+/* 5. Pricing: animated number + rotating glow border on the annual (best value) term. */
+.pricecard .num { display:inline-block; min-width:2ch; }
+.pricecard.best { isolation:isolate; overflow:hidden; background:var(--mo-card); }
+.pricecard.best::before { content:""; position:absolute; inset:-75%; z-index:-2; background:conic-gradient(from 0deg,transparent 0 60%,var(--mo-bronze) 72%,var(--mo-bronze-l) 81%,var(--mo-bronze) 88%,transparent 97%); animation:mo-spin 7s linear infinite; }
+.pricecard.best::after { content:""; position:absolute; inset:2px; z-index:-1; background:var(--mo-card); }
+@keyframes mo-spin { to { transform:rotate(1turn); } }
+
+/* 6. Footer: reveal-from-under on scroll, oversized wordmark, line hover links. */
+.footer { overflow:hidden; }
+.foot-mark { margin-block-start:32px; font:900 clamp(64px,17vw,232px)/.82 ExEn,sans-serif; letter-spacing:-.045em; text-align:center; direction:ltr; white-space:nowrap; user-select:none; color:transparent; -webkit-text-stroke:1px rgba(241,207,163,.45); background:linear-gradient(180deg,rgba(241,207,163,.4),transparent 92%); -webkit-background-clip:text; background-clip:text; }
+.foot a:not(:has(svg,img)) { width:fit-content; background:linear-gradient(currentColor,currentColor) no-repeat 100% 100% / 0 1px; transition:background-size .35s var(--mo-ease),color .25s ease; }
+html[dir=ltr] .foot a:not(:has(svg,img)) { background-position:0 100%; }
+.foot a:not(:has(svg,img)):hover, .foot a:not(:has(svg,img)):focus-visible { color:#fff; background-size:100% 1px; }
+@supports (animation-timeline:view()) {
+  @media (min-width:768px) and (prefers-reduced-motion:no-preference) {
+    .footer > .wrap { animation:mo-under linear both; animation-timeline:view(); animation-range:entry 0% entry 100%; }
+    .foot-mark { animation:mo-mark linear both; animation-timeline:view(); animation-range:entry 0% cover 60%; }
+  }
+}
+@keyframes mo-under { from { transform:translateY(-38%); opacity:.35; } }
+@keyframes mo-mark { from { transform:translateY(45%) scale(.94); opacity:0; } }
+
+@media (prefers-reduced-motion:reduce) {
+  .pricecard.best::before { animation:none; }
+  .group, .group header, .group .module > div, .group .module span, .foot a { transition:none !important; }
+}

@@ -8,7 +8,7 @@ const dist = path.join(root, 'dist');
 const read = (file) => fs.readFileSync(path.join(dist, file), 'utf8');
 
 test('build includes every page and local design asset', () => {
-  for (const file of ['index.html', 'about.html', 'install.html', 'offline.html', 'privacy.html', 'terms.html', 'styles.css', 'editorial.css', 'marketing.js', 'install.js', 'laser-scene.js', 'laser-scene.css', 'config.js', 'brand.svg', 'favicon.svg', 'icons.svg', 'screens/projects.webp', 'icons/cloud-192.png', 'icons/cloud-512.png', 'fonts/cairo-arabic.woff2', 'fonts/cairo-latin.woff2']) {
+  for (const file of ['index.html', 'about.html', 'install.html', 'offline.html', 'privacy.html', 'terms.html', 'styles.css', 'editorial.css', 'marketing.js', 'motion.js', 'motion.css', 'install.js', 'laser-scene.js', 'laser-scene.css', 'config.js', 'brand.svg', 'favicon.svg', 'icons.svg', 'screens/projects.webp', 'icons/cloud-192.png', 'icons/cloud-512.png', 'fonts/cairo-arabic.woff2', 'fonts/cairo-latin.woff2']) {
     assert.ok(fs.existsSync(path.join(dist, file)), 'Missing dist/' + file);
   }
 });
@@ -59,8 +59,9 @@ test('English URL is a static English page with its own canonical and shared hre
   assert.match(en, /<html lang="en" dir="ltr"/);
   assert.match(en, /<link rel="canonical" href="https:\/\/enginex2030\.com\/en\/">/);
   assert.match(en, /<meta property="og:locale" content="en_US">/);
-  assert.match(en, /data-i="heroH">Know every project’s real margin/);
-  assert.ok(!/data-i="heroH">[^<]*[؀-ۿ]/.test(en), 'English hero heading still contains Arabic');
+  const heading = (en.match(/data-i="heroH"[^>]*>(.*?)<\/h1>/) || [])[1]?.replace(/<[^>]+>/g, '') || '';
+  assert.match(heading, /^Know every project’s real margin/);
+  assert.ok(!/[؀-ۿ]/.test(heading), 'English hero heading still contains Arabic');
   assert.match(ar, /<link rel="canonical" href="https:\/\/enginex2030\.com\/">/);
   for (const page of [ar, en]) {
     assert.ok(page.includes('<link rel="alternate" hreflang="ar" href="https://enginex2030.com/">'));
