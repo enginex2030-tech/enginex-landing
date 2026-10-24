@@ -128,6 +128,24 @@ test('redirects stay on https in one hop and HSTS is sent', () => {
   assert.ok(!/location[^{]*\{[^}]*add_header/.test(conf), 'A location-level add_header would drop the security headers');
 });
 
+test('the ENGINEX wordmark replaces the old mark wherever the product is branded', () => {
+  const pages = ['index.html', 'en/index.html', 'about.html', 'privacy.html', 'terms.html', '404.html', 'install.html', 'offline.html'];
+  for (const page of pages) {
+    const html = read(page);
+    assert.ok(!html.includes('/brand.svg"'), page + ' still shows the old brand.svg mark');
+    assert.match(html, /<img class="brand-logo" src="\/logo\/enginex-logo(-light)?-320\.png" srcset="[^"]+640\.png 2x"[^>]*alt="ENGINEX/, page + ' has no ENGINEX wordmark');
+  }
+  for (const page of ['index.html', 'install.html']) {
+    assert.match(read(page), /class="footer"[\s\S]*enginex-logo-light-320\.png/, page + ' footer should use the light logo on its dark background');
+    assert.match(read(page), /<link rel="apple-touch-icon" href="\/apple-touch-icon\.png">/);
+  }
+  assert.match(read('index.html'), /"logo":"https:\/\/enginex2030\.com\/logo\/enginex-logo-640\.png"/);
+  assert.match(read('index.html'), /© <span id="year"><\/span> ENGINEX ERP/);
+  for (const file of ['favicon.ico', 'apple-touch-icon.png', 'logo/enginex-logo-320.png', 'logo/enginex-logo-640.png', 'logo/enginex-logo-light-320.png', 'logo/enginex-logo-light-640.png']) {
+    assert.ok(fs.existsSync(path.join(dist, file)), 'Missing dist/' + file);
+  }
+});
+
 test('build output has no unresolved config markers or base64 images', () => {
   const allText = ['index.html', 'about.html', 'install.html', 'offline.html', 'privacy.html', 'terms.html', 'marketing.js', 'install.js', 'config.js'].map(read).join('\n');
   assert.ok(!allText.includes('__VITE_API_'), 'Unresolved API configuration token');

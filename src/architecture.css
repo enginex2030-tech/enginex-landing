@@ -57,3 +57,8 @@ body { background:#f4f1ea; color:#17282e; }
 
 /* v2 hero artwork is served as a responsive AVIF/WebP <picture> from /media/ (versioned file names, cached immutably). */
 .future-cover{object-position:center}
+
+/* ENGINEX wordmark: the image carries the product name, so it is sized by height. */
+.header .brand img.brand-logo { width:auto; height:40px; filter:none; }
+.footer .brand img.brand-logo { width:auto; height:36px; }
+@media(max-width:480px) { .header .brand img.brand-logo { height:30px; } }

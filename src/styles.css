@@ -30,6 +30,9 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var
 .nav{display:flex;align-items:center;justify-content:space-between;gap:18px;padding-block:20px;border-bottom:1px solid var(--line)}
 .brand{font-weight:900;font-size:1.05rem;letter-spacing:.02em;text-decoration:none;color:var(--navy);direction:ltr}
 .brand .mint{color:var(--teal)}
+/* ENGINEX wordmark: the image carries the product name, so it is sized by height. */
+.site-header .brand img.brand-logo{width:auto;height:40px;filter:none}
+@media(max-width:480px){.site-header .brand img.brand-logo{height:32px}}
 .nav a{color:var(--muted);text-decoration:none;font-size:.82rem;font-weight:700}
 .nav a:hover{color:var(--teal)}
 .guide{padding-block:38px 72px}
