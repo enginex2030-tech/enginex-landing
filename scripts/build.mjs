@@ -1,6 +1,7 @@
 import { cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import vm from 'node:vm';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const sourceDir = path.join(root, 'src');
@@ -96,6 +97,68 @@ function splitWords(html) {
     open + text.split(' ').map((word) => '<span class="w">' + word + '</span>').join(' ') + close);
 }
 
+// Containers that marketing.js fills in the browser. Their markup is also written
+// into the HTML at build time so crawlers read it without running JavaScript.
+const renderedContainers = ['painGrid', 'timeline', 'aiSteps', 'aiFields', 'groups', 'zatcaList', 'safeGrid', 'platforms', 'stories', 'faqs', 'tabs', 'shotTitle', 'shotText', 'points'];
+
+// Fetches the published plans once per build. Pricing is optional: if the API
+// cannot be reached the page keeps its loading skeleton and the browser fills it.
+async function fetchPlans(apiBase) {
+  try {
+    const response = await fetch(apiBase + '/api/admin/plans', { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(10000) });
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    return await response.json();
+  } catch (error) {
+    console.warn('Pricing not prerendered: ' + error.message);
+    return null;
+  }
+}
+
+// Runs marketing.js against a minimal DOM stand-in and returns the markup its
+// own render functions produce, so the static HTML matches what the browser draws.
+async function renderSections(source, language, plansPayload) {
+  const element = () => ({ innerHTML: '', textContent: '', src: '', alt: '', dataset: {}, style: {}, children: [], classList: { add() {}, remove() {}, toggle() {} }, setAttribute() {}, hasAttribute: () => false, addEventListener() {}, querySelectorAll: () => [], querySelector: () => null, focus() {} });
+  const elements = Object.fromEntries([...renderedContainers, 'prices', 'shot', 'lang', 'theme', 'menu', 'mobile', 'year'].map((id) => [id, element()]));
+  const observer = function () { return { observe() {}, unobserve() {}, disconnect() {} }; };
+  const context = {
+    ...elements,
+    Intl, URL, Event: class { constructor(type) { this.type = type; } }, AbortController, setTimeout, clearTimeout,
+    matchMedia: () => ({ matches: false, addEventListener() {} }),
+    IntersectionObserver: observer, ResizeObserver: observer,
+    requestAnimationFrame: () => 0, cancelAnimationFrame() {}, performance: { now: () => 0 },
+    location: { pathname: language === 'en' ? '/en/' : '/', hash: '' },
+    document: { documentElement: {}, title: '', hidden: false, querySelectorAll: () => [], querySelector: () => ({}), getElementById: () => null, addEventListener() {}, dispatchEvent() {} },
+    window: { devicePixelRatio: 1 },
+    fetch: async () => (plansPayload ? { ok: true, json: async () => plansPayload } : { ok: false })
+  };
+  vm.runInNewContext(source, context);
+  // Let the pricing request inside marketing.js settle before reading the markup.
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  return elements;
+}
+
+function prerenderSections(html, rendered) {
+  const fillEmpty = (page, id, markup) => {
+    const pattern = new RegExp(`(<([a-z0-9]+)\\b[^>]*\\bid="${id}"[^>]*>)(</\\2>)`);
+    if (!pattern.test(page)) throw new Error(`Prerender: empty container #${id} was not found in index.html.`);
+    return page.replace(pattern, (whole, open, tag, close) => open + markup + close);
+  };
+  let page = html;
+  for (const id of renderedContainers) {
+    const markup = id === 'shotTitle' || id === 'shotText' ? escapeHtml(rendered[id].textContent) : rendered[id].innerHTML;
+    if (!markup) throw new Error(`Prerender: marketing.js rendered nothing into #${id}.`);
+    page = fillEmpty(page, id, markup);
+  }
+  page = page.replace(/(<img id="shot"[^>]*\balt=")[^"]*"/, `$1${escapeHtml(rendered.shot.alt)}"`);
+  const prices = rendered.prices.innerHTML;
+  if (prices && !prices.includes('price-error')) {
+    const skeleton = /(<div class="prices" id="prices">)(?:<div class="pricecard"><div class="skel"><i><\/i><i><\/i><i><\/i><\/div><\/div>)+(<\/div>)/;
+    if (!skeleton.test(page)) throw new Error('Prerender: pricing skeleton was not found in index.html.');
+    page = page.replace(skeleton, (whole, open, close) => open + prices + close);
+  }
+  return page;
+}
+
 async function replaceTokens(directory, apiBase, apiHost) {
   const textExtensions = new Set(['.html', '.js', '.css', '.xml', '.txt', '.svg', '.webmanifest']);
   for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -126,8 +189,12 @@ await copyContents(sourceDir, distDir);
 await mkdir(path.join(distDir, 'en'), { recursive: true });
 const translations = await readTranslations();
 const arabicIndex = await readFile(path.join(sourceDir, 'index.html'), 'utf8');
-await writeFile(path.join(distDir, 'en', 'index.html'), splitWords(localizeEnglish(arabicIndex, translations.en)));
-await writeFile(path.join(distDir, 'index.html'), splitWords(arabicIndex));
+const marketingSource = await readFile(path.join(sourceDir, 'marketing.js'), 'utf8');
+const plansPayload = await fetchPlans(apiBase);
+const renderedAr = await renderSections(marketingSource, 'ar', plansPayload);
+const renderedEn = await renderSections(marketingSource, 'en', plansPayload);
+await writeFile(path.join(distDir, 'en', 'index.html'), splitWords(prerenderSections(localizeEnglish(arabicIndex, translations.en), renderedEn)));
+await writeFile(path.join(distDir, 'index.html'), splitWords(prerenderSections(arabicIndex, renderedAr)));
 await copyContents(publicDir, distDir);
 // Keep existing public asset URLs usable by saved links and installer pages.
 await copyContents(path.join(root, 'assets'), path.join(distDir, 'assets'));

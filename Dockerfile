@@ -10,4 +10,6 @@ RUN npm run build
 FROM nginx:stable-alpine
 COPY --from=build /app/.deploy/default.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist/ /usr/share/nginx/html/
+# Fail the image build on an invalid Nginx config instead of shipping a broken site.
+RUN nginx -t
 EXPOSE 80

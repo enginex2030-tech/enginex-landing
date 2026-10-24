@@ -85,6 +85,49 @@ test('public pages publish no personal bank or payment account details', () => {
   assert.ok(!read('../.deploy/default.conf').includes('ipn.eg'), 'CSP still allows the InstaPay image host');
 });
 
+test('missing pages return a real 404 instead of the homepage', () => {
+  const conf = read('../.deploy/default.conf');
+  assert.match(conf, /location \/ \{\s*try_files \$uri \$uri\/ =404;/);
+  assert.ok(!conf.includes('/index.html;\n  }\n}'), 'SPA fallback to index.html remains');
+  assert.match(conf, /error_page 404 \/404\.html;/);
+  const page = read('404.html');
+  assert.match(page, /<meta name="robots" content="noindex">/);
+  assert.ok(!read('offline.html').includes('href="/owner-login"'), 'Offline page links to a path that now 404s');
+});
+
+test('core homepage sections are in the initial HTML for both languages', () => {
+  const ar = read('index.html');
+  const en = read('en/index.html');
+  for (const [page, words] of [[ar, ['سجل التدقيق', 'فاتورة ضريبية قابلة للتتبع', 'هل أحتاج بطاقة دفع للتجربة؟', 'المناقصة والتسعير']], [en, ['Audit trail', 'Traceable tax invoice', 'Do I need a payment card for the trial?', 'Tender & pricing']]]) {
+    assert.match(page, /id="groups"><article class="group/);
+    assert.match(page, /id="zatcaList"><div><b>QR/);
+    assert.match(page, /id="faqs"><details open><summary>/);
+    assert.match(page, /id="timeline"><li class="step/);
+    for (const word of words) assert.ok(page.includes(word), 'Missing prerendered text: ' + word);
+    assert.match(page, /id="prices"><(article class="pricecard|div class="pricecard"><div class="skel")/);
+  }
+  assert.ok(!/[؀-ۿ]/.test(en.match(/id="faqs">([\s\S]*?)<\/div><\/div><\/section>/)[1]), 'English FAQ contains Arabic');
+});
+
+test('hero artwork is a responsive AVIF/WebP image under 200 KB with immutable caching', () => {
+  const html = read('index.html');
+  assert.ok(!html.includes('future-architecture.png') && !read('architecture.css').includes('future-architecture-v2.png'), 'Hero still loads the PNG');
+  assert.match(html, /<source type="image\/avif" srcset="[^"]+1024w[^"]+1600w[^"]+2039w"/);
+  assert.match(html, /<img class="future-cover" src="\/media\/[^"]+\.webp" srcset="[^"]+2039w"/);
+  for (const file of fs.readdirSync(path.join(dist, 'media'))) {
+    assert.ok(fs.statSync(path.join(dist, 'media', file)).size < 200 * 1024, file + ' is 200 KB or larger');
+  }
+  assert.match(read('../.deploy/default.conf'), /~\^\/media\/ "public, max-age=31536000, immutable";/);
+});
+
+test('redirects stay on https in one hop and HSTS is sent', () => {
+  const conf = read('../.deploy/default.conf');
+  assert.match(conf, /absolute_redirect off;/);
+  assert.match(conf, /add_header Strict-Transport-Security "max-age=31536000" always;/);
+  assert.match(conf, /return 301 https:\/\/\$ex_canonical_host\$request_uri;/);
+  assert.ok(!/location[^{]*\{[^}]*add_header/.test(conf), 'A location-level add_header would drop the security headers');
+});
+
 test('build output has no unresolved config markers or base64 images', () => {
   const allText = ['index.html', 'about.html', 'install.html', 'offline.html', 'privacy.html', 'terms.html', 'marketing.js', 'install.js', 'config.js'].map(read).join('\n');
   assert.ok(!allText.includes('__VITE_API_'), 'Unresolved API configuration token');
