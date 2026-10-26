@@ -14,14 +14,14 @@ $c = $ar ? [
           ['projects','التنفيذ','تابع المشروعات والعقود والتقدم في مكان واحد يراه الجميع وفق صلاحياتهم.'],
           ['claims','المستخلص','تابع المستحقات والمراجعات والاعتمادات بمسار واضح يربط التنفيذ بالقيمة.'],
           ['equipment','الموقع','اعرف أين تعمل المعدات، وما صُرف عليها، ومن المسؤول عن جاهزيتها، مع المشتريات والمخزون.'],
-          ['zatca','التحصيل','أغلق الدورة بفواتير وضريبة وقيود مترابطة، مع جاهزية لمتطلبات ZATCA.']],
+          ['zatca','التحصيل','أغلق الدورة بفواتير وضريبة وقيود مترابطة، مع دعم الأنظمة الضريبية في مصر والسعودية وكل الدول العربية (ZATCA وETA).']],
   'ck' => 'التحكم', 'ct' => 'كل قرار موثّق. كل شخص يرى ما يخصه.',
   'cl' => [['الصلاحيات','تحكم واضح في ما يراه وينفذه كل مستخدم.'],['الاعتمادات','القرار يُتخذ داخل العملية لا في رسائل منفصلة.'],['سجل التدقيق','من فعل ماذا ومتى، محفوظ داخل النظام.']],
   'rk' => 'أينما تعمل', 'rt' => 'تطبيق Windows، أو المتصفح، أو شاشة الهاتف الرئيسية.',
   'pr' => 'السعر', 'pt' => 'كامل المنظومة. اختر المدة فقط.', 'pp' => 'حتى 8 مستخدمين، بلا وحدات مخفية.',
-  'y1' => 'اشتراك سنة', 'y2' => 'اشتراك سنتين', 'sar' => 'ريال', 'save' => 'وفّر 350 ريال', 'pay' => 'دفع إلكتروني · InstaPay · تحويل بنكي دولي',
+  'y1' => 'اشتراك سنة', 'y2' => 'اشتراك سنتين', 'sar' => 'جنيه', 'save' => 'وفّر 350 جنيه', 'pay' => 'دفع إلكتروني · InstaPay · تحويل بنكي دولي',
   'ft2' => 'ابدأ بمشروع واحد.', 'fp' => 'امنح فريقك 30 يوماً داخل نظام واحد، ثم قرّر.', 'wa' => 'تحدث معنا عبر واتساب',
-  'desc' => 'منصة ERP عربية تربط المناقصات والمشروعات والمشتريات والمعدات والمستخلصات والمحاسبة في نظام واحد.'
+  'desc' => 'منصة ERP مصرية عربية تربط المناقصات والمشروعات والمشتريات والمعدات والمستخلصات والمحاسبة في نظام واحد.'
 ] : [
   'title' => 'ENGINEX ERP | From tender to collection', 'nav' => [['Platform','flow'],['Inside the system','control'],['Subscription & payment','pricing'],['FAQ','payment']],
   'login' => 'Sign in', 'start' => 'Start your free trial', 'dl' => 'Download the app', 'note' => 'Full 30 days · No payment card',
@@ -33,14 +33,14 @@ $c = $ar ? [
           ['projects','Delivery','Follow projects, contracts, and progress in one place everyone sees by permission.'],
           ['claims','Claims','Track entitlements, reviews, and approvals on a clear path from delivery to value.'],
           ['equipment','Site','Know where equipment works, what it costs, and who owns its readiness, with procurement and stock.'],
-          ['zatca','Collection','Close the loop with connected invoices, tax, and journals, ready for ZATCA requirements.']],
+          ['zatca','Collection','Close the loop with connected invoices, tax, and journals, with support for Egypt, Saudi Arabia, and every Arab country tax regime (ZATCA, ETA).']],
   'ck' => 'Control', 'ct' => 'Every decision on record. Everyone sees what is theirs.',
   'cl' => [['Permissions','Clear control over what each user can see and do.'],['Approvals','Decisions happen inside the process, not in side messages.'],['Audit log','Who did what and when, kept inside the system.']],
   'rk' => 'Wherever you work', 'rt' => 'Windows app, browser, or your phone’s home screen.',
   'pr' => 'Price', 'pt' => 'The full system. Choose only the term.', 'pp' => 'Up to 8 users, no hidden modules.',
-  'y1' => 'One year', 'y2' => 'Two years', 'sar' => 'SAR', 'save' => 'Save SAR 350', 'pay' => 'Online payment · InstaPay · International transfer',
+  'y1' => 'One year', 'y2' => 'Two years', 'sar' => 'EGP', 'save' => 'Save EGP 350', 'pay' => 'Online payment · InstaPay · International transfer',
   'ft2' => 'Start with one project.', 'fp' => 'Give your team 30 days inside one system, then decide.', 'wa' => 'Talk to us on WhatsApp',
-  'desc' => 'An Arabic-first ERP connecting tenders, projects, procurement, equipment, claims, and finance in one system.'
+  'desc' => 'An Egyptian, Arabic-first ERP connecting tenders, projects, procurement, equipment, claims, and finance in one system.'
 ];
 function e(string $v): string { return htmlspecialchars($v, ENT_QUOTES, 'UTF-8'); }
 ?>
@@ -55,7 +55,7 @@ function e(string $v): string { return htmlspecialchars($v, ENT_QUOTES, 'UTF-8')
 <link rel="stylesheet" href="assets/rx.css">
 </head>
 <body>
-<div class="promo"><span><?= $ar ? 'عرض الإطلاق الآن — اشتراك سنوي يبدأ من 350 ريال ↗' : 'Launch offer — annual plans start at SAR 350 ↗' ?></span></div>
+<div class="promo"><span><?= $ar ? 'عرض الإطلاق الآن — اشتراك سنوي يبدأ من 350 جنيه ↗' : 'Launch offer — annual plans start at EGP 350 ↗' ?></span></div>
 <header class="bar" data-bar>
   <a class="logo" href="#top"><img src="assets/brand.svg" alt="" width="36" height="36"><span>ENGINE<b>X</b></span></a>
   <nav><?php foreach ($c['nav'] as $n): ?><a href="#<?=$n[1]?>"><?=e($n[0])?></a><?php endforeach; ?><a href="install.html?lang=<?=$lang?>"><?=e($c['dl'])?></a></nav>
@@ -101,8 +101,8 @@ function e(string $v): string { return htmlspecialchars($v, ENT_QUOTES, 'UTF-8')
 <section class="price" id="pricing">
   <header><p class="kick"><?=e($c['pr'])?></p><h2><?=e($c['pt'])?></h2><p><?=e($c['pp'])?></p></header>
   <div class="rows">
-    <a class="row offer-image" href="<?=$APP?>/register"><img src="assets/gallery/enginex-scene-06.jpg" alt="<?=e($ar ? 'اشتراك سنة — 550 ريال' : 'One-year subscription — SAR 550')?>" loading="lazy"></a>
-    <a class="row hot offer-image" href="<?=$APP?>/register"><img src="assets/gallery/enginex-scene-06-two-years.png" alt="<?=e($ar ? 'اشتراك سنتين — 1100 ريال' : 'Two-year subscription — SAR 1100')?>" loading="lazy"></a>
+    <a class="row offer-image" href="<?=$APP?>/register"><img src="assets/gallery/enginex-scene-06.jpg" alt="<?=e($ar ? 'اشتراك سنة — 550 جنيه' : 'One-year subscription — EGP 550')?>" loading="lazy"></a>
+    <a class="row hot offer-image" href="<?=$APP?>/register"><img src="assets/gallery/enginex-scene-06-two-years.png" alt="<?=e($ar ? 'اشتراك سنتين — 1100 جنيه' : 'Two-year subscription — EGP 1100')?>" loading="lazy"></a>
     <p class="pay"><?=e($c['pay'])?></p>
   </div>
 </section>
@@ -110,7 +110,7 @@ function e(string $v): string { return htmlspecialchars($v, ENT_QUOTES, 'UTF-8')
 <section class="payment" id="payment">
   <header class="section-intro"><p class="kick"><?= $ar ? 'الدفع والاشتراك' : 'Payment and subscription' ?></p><h2><?= $ar ? 'ابدأ خلال دقائق' : 'Start in minutes' ?></h2><p><?= $ar ? 'اختر المدة، اربط طريقة الدفع، وفعّل اشتراكك مباشرة.' : 'Choose a term, connect a payment method, and activate your subscription.' ?></p></header>
   <div class="payment-grid">
-    <?php $steps = $ar ? [['01','أنشئ مساحة العمل','سجّل بيانات منشأتك وابدأ التجربة مباشرة.'],['02','اختر المدة','سنوي 350 ريال أو سنتان 700 ريال.'],['03','اختر الدفع','دفع إلكتروني آمن أو InstaPay أو تحويل بنكي.'],['04','فعّل الاشتراك','بعد التحقق من الدفع يُفعّل الاشتراك على حساب المنشأة.']] : [['01','Create your workspace','Enter your company details and start immediately.'],['02','Choose a term','Annual SAR 350 or two years for SAR 700.'],['03','Choose payment','Secure online payment, InstaPay, or bank transfer.'],['04','Activate subscription','Your workspace activates after payment verification.']]; foreach ($steps as $step): ?><article class="step-card"><b><?=e($step[0])?></b><h3><?=e($step[1])?></h3><p><?=e($step[2])?></p></article><?php endforeach; ?>
+    <?php $steps = $ar ? [['01','أنشئ مساحة العمل','سجّل بيانات منشأتك وابدأ التجربة مباشرة.'],['02','اختر المدة','سنوي 350 جنيه أو سنتان 700 جنيه.'],['03','اختر الدفع','دفع إلكتروني آمن أو InstaPay أو تحويل بنكي.'],['04','فعّل الاشتراك','بعد التحقق من الدفع يُفعّل الاشتراك على حساب المنشأة.']] : [['01','Create your workspace','Enter your company details and start immediately.'],['02','Choose a term','Annual EGP 350 or two years for EGP 700.'],['03','Choose payment','Secure online payment, InstaPay, or bank transfer.'],['04','Activate subscription','Your workspace activates after payment verification.']]; foreach ($steps as $step): ?><article class="step-card"><b><?=e($step[0])?></b><h3><?=e($step[1])?></h3><p><?=e($step[2])?></p></article><?php endforeach; ?>
   </div>
 </section>
 

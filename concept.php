@@ -6,14 +6,14 @@ $isPreview = basename((string)($_SERVER['SCRIPT_NAME'] ?? '')) === 'concept.php'
 $copy = [
   'ar' => [
     'title' => 'ENGINEX ERP | إدارة المقاولات من المناقصة إلى التحصيل',
-    'description' => 'منصة ERP عربية تربط المناقصات والمشروعات والمشتريات والمعدات والمستخلصات والمحاسبة في نظام واحد.',
+    'description' => 'منصة ERP مصرية عربية تربط المناقصات والمشروعات والمشتريات والمعدات والمستخلصات والمحاسبة في نظام واحد.',
     'nav' => [['المنصة','platform'],['لمن صُممت','roles'],['الأسعار','pricing'],['تحميل التطبيق','/install.html']],
     'signin' => 'دخول النظام', 'start' => 'ابدأ تجربتك المجانية', 'demo' => 'شاهد المنصة',
     'eyebrow' => 'نظام تشغيل شركات المقاولات والاستشارات الهندسية',
     'h1a' => 'كل مشروع تحت السيطرة.', 'h1b' => 'كل قرار مبني على رقم.',
     'lead' => 'من المناقصة والعقد إلى التنفيذ والمستخلص والتحصيل—ENGINEX يجمع فرقك وعملياتك وماليتك في منصة واحدة صُممت لطريقة عمل المقاولات في العالم العربي.',
     'trialNote' => 'تجربة كاملة لمدة 30 يوماً · دون بطاقة دفع',
-    'region' => 'مصمم للعالم العربي', 'regionText' => 'عربي وإنجليزي · عملات متعددة · ضريبة القيمة المضافة · توافق ZATCA',
+    'region' => 'مصمم للعالم العربي', 'regionText' => 'عربي وإنجليزي · عملات متعددة · ضريبة القيمة المضافة · أنظمة ضريبية لكل الدول العربية (ZATCA وETA)',
     'command' => 'مركز قيادة المشروعات', 'live' => 'صورة موحّدة لحظياً',
     'kpis' => [['قيمة الأعمال','24.8M'],['تكلفة فعلية','17.1M'],['هامش متوقع','31%']],
     'pulse' => 'دورة واحدة. بيانات لا تنقطع.',
@@ -26,7 +26,7 @@ $copy = [
       ['claims','المستخلصات والاعتمادات','تابع المستحقات والمراجعات والاعتمادات بمسار واضح يربط التنفيذ بالقيمة.','أثناء التنفيذ'],
       ['equipment','المعدات والصيانة','اعرف أين تعمل المعدات، وما الذي صُرف عليها، ومن المسؤول عن جاهزيتها.','في الموقع'],
       ['reports','الربحية والتقارير','اجمع التكلفة والتقدم والتدفق النقدي في صورة واحدة تصلح لاتخاذ القرار.','في الإدارة'],
-      ['zatca','الفوترة والضريبة','أغلق الدورة بفواتير وضريبة وقيود مترابطة، مع جاهزية للعمل وفق متطلبات ZATCA.','في المالية']
+      ['zatca','الفوترة والضريبة','أغلق الدورة بفواتير وضريبة وقيود مترابطة، مع دعم الأنظمة الضريبية في مصر والسعودية وكل الدول العربية (ZATCA وETA).','في المالية']
     ],
     'outcomeK' => 'ليست وحدات منفصلة', 'outcomeT' => 'منظومة تجعل المشروع مفهوماً قبل أن يصبح متأخراً.',
     'outcomes' => [
@@ -44,19 +44,19 @@ $copy = [
       ['الموقع والموارد','معدات وصيانة ومشتريات وحركة تشغيل مرتبطة بالمشروع.','التنفيذ']
     ],
     'arabK' => 'تقنية عالمية. سياق عربي.', 'arabT' => 'بُني لواقع شركات المنطقة، لا تمت ترجمته لها لاحقاً.',
-    'arabP' => 'واجهة عربية أصلية إلى جانب الإنجليزية، دعم العمل عبر الفروع والعملات، وفوترة ضريبية مناسبة للسوق السعودي—مع تجربة موحدة أينما كانت مشاريعك.',
-    'arabTags' => ['العربية RTL','English LTR','عملات متعددة','فروع متعددة','VAT','ZATCA'],
+    'arabP' => 'واجهة عربية أصلية إلى جانب الإنجليزية، دعم العمل عبر الفروع والعملات، وفوترة ضريبية مناسبة لمصر وكل الدول العربية—مع تجربة موحدة أينما كانت مشاريعك.',
+    'arabTags' => ['العربية RTL','English LTR','عملات متعددة','فروع متعددة','VAT','ZATCA','ETA'],
     'trust' => [['صلاحيات حسب الدور','تحكم واضح في ما يراه وينفذه كل مستخدم.'],['مسارات اعتماد','القرار موثق داخل العملية لا في رسائل منفصلة.'],['بيانات منشأة مستقلة','كل شركة تعمل داخل مساحة بيانات خاصة بها.']],
     'priceK' => 'عرض إطلاق واضح', 'priceT' => 'ابدأ بكامل المنظومة. اختر المدة فقط.',
     'priceP' => 'لا قوائم معقدة ولا وحدات مخفية. الاشتراك يشمل الوظائف الأساسية لتشغيل الشركة حتى 8 مستخدمين.',
-    'annual' => 'اشتراك سنة واحدة', 'two' => 'اشتراك سنتين', 'best' => 'أفضل قيمة', 'sar' => 'ريال',
-    'saveAnnual' => 'وفّر 350 ريال', 'select' => 'ابدأ الآن',
+    'annual' => 'اشتراك سنة واحدة', 'two' => 'اشتراك سنتين', 'best' => 'أفضل قيمة', 'sar' => 'جنيه',
+    'saveAnnual' => 'وفّر 350 جنيه', 'select' => 'ابدأ الآن',
     'includes' => ['حتى 8 مستخدمين','الإدارة المالية','الفروع والإدارة المركزية','قاعدة بيانات هجينة'],
     'pay' => 'طرق الدفع المتاحة', 'methods' => ['دفع إلكتروني','InstaPay','تحويل بنكي دولي'],
     'faqK' => 'قبل أن تبدأ', 'faqT' => 'إجابات مباشرة.',
     'faqs' => [
       ['هل أحتاج بطاقة دفع للتجربة؟','لا. يمكنك بدء تجربة كاملة لمدة 30 يوماً دون إدخال بطاقة دفع.'],
-      ['هل يعمل النظام خارج السعودية؟','نعم. المنصة مصممة لخدمة شركات المقاولات في الدول العربية، مع دعم العربية والإنجليزية والعملات المتعددة. تختلف المتطلبات الضريبية حسب الدولة.'],
+      ['هل يعمل النظام خارج مصر؟','نعم. المنصة مصرية ومصممة لخدمة شركات المقاولات في مصر وكل الدول العربية، مع دعم العربية والإنجليزية والعملات المتعددة وأنظمة ضريبية حسب الدولة (ZATCA وETA).'],
       ['هل الأسعار تتغير من لوحة الإدارة؟','نعم. تعرض الصفحة الأسعار مباشرة من واجهة خطط الاشتراك في النظام، وتحتفظ بالقيم الحالية عند تعذر الاتصال.'],
       ['هل يمكن استخدامه من الموقع؟','النظام سحابي ويعمل عبر المتصفح، لذلك يمكن للفرق المصرح لها الوصول من المكتب أو الموقع وفق صلاحياتها.']
     ],
@@ -66,14 +66,14 @@ $copy = [
   ],
   'en' => [
     'title' => 'ENGINEX ERP | Construction from tender to collection',
-    'description' => 'An Arabic-first ERP connecting tenders, projects, procurement, equipment, claims, and finance in one platform.',
+    'description' => 'An Egyptian, Arabic-first ERP connecting tenders, projects, procurement, equipment, claims, and finance in one platform.',
     'nav' => [['Platform','platform'],['Who it serves','roles'],['Pricing','pricing'],['Download','/install.html']],
     'signin' => 'Sign in', 'start' => 'Start your free trial', 'demo' => 'Explore the platform',
     'eyebrow' => 'The operating system for contractors and engineering consultancies',
     'h1a' => 'Every project under control.', 'h1b' => 'Every decision backed by data.',
     'lead' => 'From tender and contract to delivery, claims, and collection—ENGINEX brings teams, operations, and finance into one platform built for how construction works across Arab markets.',
     'trialNote' => 'Full 30-day trial · No payment card required',
-    'region' => 'Built for Arab markets', 'regionText' => 'Arabic & English · Multiple currencies · VAT · ZATCA readiness',
+    'region' => 'Built for Arab markets', 'regionText' => 'Arabic & English · Multiple currencies · VAT · Arab tax regimes (ZATCA, ETA)',
     'command' => 'Project command center', 'live' => 'One live operating picture',
     'kpis' => [['Contract value','24.8M'],['Actual cost','17.1M'],['Expected margin','31%']],
     'pulse' => 'One lifecycle. Unbroken data.',
@@ -86,7 +86,7 @@ $copy = [
       ['claims','Claims & approvals','Track entitlements, reviews, and approvals through a clear path connecting delivery to value.','Delivery'],
       ['equipment','Equipment & maintenance','Know where equipment operates, what it costs, and who owns its readiness.','On site'],
       ['reports','Margin & reporting','Bring cost, progress, and cash flow together in one decision-ready picture.','Management'],
-      ['zatca','Invoice & tax','Close the loop with connected invoices, tax, and journals, ready for ZATCA requirements.','Finance']
+      ['zatca','Invoice & tax','Close the loop with connected invoices, tax, and journals, with support for Egypt, Saudi Arabia, and every Arab country tax regime (ZATCA, ETA).','Finance']
     ],
     'outcomeK' => 'Not disconnected modules', 'outcomeT' => 'A system that makes a project understandable before it becomes late.',
     'outcomes' => [
@@ -104,19 +104,19 @@ $copy = [
       ['Site & resources','Equipment, maintenance, procurement, and movement tied to project.','Delivery']
     ],
     'arabK' => 'Global technology. Arab context.', 'arabT' => 'Built for the region—not translated for it later.',
-    'arabP' => 'Native Arabic alongside English, branch and currency support, and tax invoicing suited to the Saudi market—with one experience wherever your projects operate.',
-    'arabTags' => ['Arabic RTL','English LTR','Multi-currency','Multi-branch','VAT','ZATCA'],
+    'arabP' => 'Native Arabic alongside English, branch and currency support, and tax invoicing suited to Egypt and every Arab country—with one experience wherever your projects operate.',
+    'arabTags' => ['Arabic RTL','English LTR','Multi-currency','Multi-branch','VAT','ZATCA','ETA'],
     'trust' => [['Role-based access','Clear control over what every user can see and do.'],['Approval workflows','Decisions remain documented inside the process.'],['Isolated company data','Every company operates in its own data workspace.']],
     'priceK' => 'A straightforward launch offer', 'priceT' => 'Start with the full system. Choose only the term.',
     'priceP' => 'No complex menus or hidden modules. Access includes the core functions to operate your company for up to 8 users.',
-    'annual' => 'One-year subscription', 'two' => 'Two-year subscription', 'best' => 'Best value', 'sar' => 'SAR',
-    'saveAnnual' => 'Save SAR 350', 'select' => 'Start now',
+    'annual' => 'One-year subscription', 'two' => 'Two-year subscription', 'best' => 'Best value', 'sar' => 'EGP',
+    'saveAnnual' => 'Save EGP 350', 'select' => 'Start now',
     'includes' => ['Up to 8 users','Financial management','Branches & head office','Hybrid database'],
     'pay' => 'Payment methods', 'methods' => ['Online payment','InstaPay','International transfer'],
     'faqK' => 'Before you start', 'faqT' => 'Direct answers.',
     'faqs' => [
       ['Do I need a card for the trial?','No. Start a complete 30-day trial without entering a payment card.'],
-      ['Does it work outside Saudi Arabia?','Yes. The platform is built for contractors across Arab markets, with Arabic, English, and multiple currencies. Tax requirements vary by country.'],
+      ['Does it work outside Egypt?','Yes. The platform is Egyptian and built for contractors across Egypt and the Arab world, with Arabic, English, multiple currencies, and country-specific tax regimes (ZATCA, ETA).'],
       ['Are prices controlled from admin?','Yes. This page reads prices from the subscription plans API and keeps current fallback values if the connection is unavailable.'],
       ['Can site teams use it?','The platform is cloud-based and works in the browser, so authorized teams can access it from office or site according to their roles.']
     ],
@@ -173,7 +173,7 @@ function e(string $value): string { return htmlspecialchars($value, ENT_QUOTES, 
     <aside class="region-note"><b><?=e($t['region'])?></b><span><?=e($t['regionText'])?></span></aside>
     <div class="product-float" aria-label="<?=e($t['command'])?>">
       <div class="product-bar"><div><img src="assets/brand.svg" alt=""><b><?=e($t['command'])?></b></div><span><i></i><?=e($t['live'])?></span></div>
-      <div class="product-body"><aside><i></i><i></i><i></i><i></i><i></i></aside><div class="product-main"><div class="metric-row"><?php foreach ($t['kpis'] as $i=>$k): ?><article><span><?=e($k[0])?></span><strong><?=e($k[1])?></strong><small><?=$i===2?'▲ 2.4':'SAR'?></small></article><?php endforeach; ?></div><div class="visual-row"><div class="visual-chart"><span></span><span></span><span></span><span></span><span></span><span></span><b></b></div><div class="visual-ring"><i></i><strong>78%</strong></div></div></div></div>
+      <div class="product-body"><aside><i></i><i></i><i></i><i></i><i></i></aside><div class="product-main"><div class="metric-row"><?php foreach ($t['kpis'] as $i=>$k): ?><article><span><?=e($k[0])?></span><strong><?=e($k[1])?></strong><small><?=$i===2?'▲ 2.4':'EGP'?></small></article><?php endforeach; ?></div><div class="visual-row"><div class="visual-chart"><span></span><span></span><span></span><span></span><span></span><span></span><b></b></div><div class="visual-ring"><i></i><strong>78%</strong></div></div></div></div>
     </div>
   </section>
 

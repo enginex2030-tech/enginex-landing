@@ -21,7 +21,7 @@ return [
             ['claims', 'المستخلصات', 'راجع واعتمد المستحقات قبل ترحيل الأثر المالي.'],
             ['reports', 'التقارير والتحليل', 'راقب الربحية والتدفقات والقيمة المكتسبة والانحراف الزمني.'],
             ['equipment', 'المعدات والصيانة', 'تابع المعدات والتشغيل والصيانة وتكلفتها على المشروعات.'],
-            ['zatca', 'الفوترة والضريبة', 'أصدر الفواتير الضريبية وادعم متطلبات ZATCA في السعودية.'],
+            ['zatca', 'الفوترة والضريبة', 'أصدر الفواتير الضريبية وادعم الأنظمة الضريبية في مصر والسعودية وكل الدول العربية (ZATCA وETA).'],
         ],
     ],
     'en' => [
@@ -36,7 +36,7 @@ return [
             ['claims', 'Claims', 'Review and approve entitlements before posting financial impact.'],
             ['reports', 'Reports & analytics', 'Monitor margin, cash flow, earned value, and schedule variance.'],
             ['equipment', 'Equipment & maintenance', 'Track equipment, utilization, maintenance, and project cost.'],
-            ['zatca', 'Tax & invoicing', 'Issue tax invoices and support Saudi ZATCA requirements.'],
+            ['zatca', 'Tax & invoicing', 'Issue tax invoices and support tax regimes across Egypt, Saudi Arabia, and the Arab world (ZATCA and ETA).'],
         ],
     ],
 ];
