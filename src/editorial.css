@@ -10,6 +10,20 @@
   --shadow: none;
 }
 
+/* The editorial direction paints light surfaces everywhere. The base sheet also
+   defines a dark palette for the old theme, so any component still reading the
+   base tokens (fact strips, tools, step copy) would turn light-on-light in a
+   dark-preference browser. Pinning the base tokens to the editorial palette
+   keeps every surface readable without touching the components themselves. */
+html[data-theme] {
+  --ink: var(--ed-ink);
+  --ink2: #103640;
+  --muted: #5f7377;
+  --bg: var(--ed-white);
+  --soft: var(--ed-paper);
+  --line: var(--ed-rule);
+}
+
 body {
   background: var(--ed-white);
   color: var(--ed-ink);

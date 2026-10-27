@@ -1,0 +1,277 @@
+/* About page — same editorial identity as the landing page, one level deeper.
+   Everything here is additive: base.css and editorial.css already carry the
+   type scale, the rules, and the palette. */
+
+.about-hero {
+  position: relative;
+  overflow: hidden;
+  padding-block: clamp(56px, 7vw, 104px);
+  border-block-end: 1px solid var(--ed-rule);
+  background:
+    radial-gradient(circle at 6% 10%, rgba(174, 232, 220, .55), transparent 28%),
+    var(--ed-paper);
+}
+.about-hero::before {
+  content: "ENGINEX";
+  position: absolute;
+  inset: auto auto -0.2em -0.04em;
+  color: rgba(16, 42, 51, .04);
+  font: 900 clamp(110px, 20vw, 320px)/.7 ExEn, sans-serif;
+  letter-spacing: -.09em;
+  pointer-events: none;
+}
+.about-hero-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: clamp(2rem, 5vw, 4.5rem);
+  align-items: start;
+}
+.about-hero h1 { margin-block: 22px 24px; }
+.about-hero .lead { max-width: 620px; }
+
+.about-panel {
+  padding: clamp(1.2rem, 2.4vw, 1.9rem);
+  border: 1px solid var(--ed-ink);
+  background: var(--ed-white);
+  box-shadow: 14px 14px 0 var(--ed-mint);
+}
+.about-panel .panel-k {
+  margin: 0 0 .4rem;
+  color: var(--ed-coral);
+  font: 800 .68rem ExEn, ExAr, sans-serif;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.about-panel dl { margin: 0; }
+.about-panel dl > div {
+  display: grid;
+  gap: .2rem;
+  padding-block: .85rem;
+  border-block-end: 1px solid var(--ed-rule);
+}
+.about-panel dl > div:last-child { border-block-end: 0; padding-block-end: 0; }
+.about-panel dt {
+  color: #66777b;
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+.about-panel dd {
+  margin: 0;
+  color: var(--ed-ink);
+  font-size: .95rem;
+  font-weight: 800;
+  line-height: 1.7;
+}
+
+/* The fact strip reuses .trusted and .product-facts from the landing page. */
+.about-hero + .trusted .product-facts { grid-template-columns: repeat(2, 1fr); }
+
+.section[id] { scroll-margin-block-start: 96px; }
+
+/* The workflow is a row of four stages, not a vertical stack of tall cards. */
+.timeline { grid-template-columns: repeat(2, 1fr); }
+.step { min-height: 0; }
+
+/* Capability matrix ------------------------------------------------------ */
+.capability-grid {
+  display: grid;
+  gap: 1px;
+  border: 1px solid var(--ed-ink);
+  background: var(--ed-ink);
+}
+.capability { background: var(--ed-white); }
+.capability header {
+  display: flex;
+  align-items: baseline;
+  gap: .9rem;
+  padding: 1.15rem 1.35rem;
+  border-block-end: 1px solid var(--ed-rule);
+}
+.cap-index {
+  color: var(--ed-coral);
+  font: 700 .68rem ExEn, monospace;
+  letter-spacing: .18em;
+}
+.capability h3 { margin: 0; font-size: 1.05rem; }
+.capability ul { margin: 0; padding: 0; list-style: none; }
+.capability li {
+  padding: 1rem 1.35rem;
+  border-block-end: 1px solid #e2e6e1;
+}
+.capability li:last-child { border-block-end: 0; }
+.capability li b {
+  display: block;
+  color: var(--ed-ink);
+  font-size: .92rem;
+}
+.capability li span {
+  display: block;
+  margin-block-start: .3rem;
+  color: #5f7377;
+  font-size: .82rem;
+  line-height: 1.8;
+}
+
+/* Tax compliance --------------------------------------------------------- */
+.tax { background: var(--ed-white); }
+.tax::after { background: var(--ed-coral); }
+.tax-grid {
+  display: grid;
+  gap: 1px;
+  border: 1px solid var(--ed-ink);
+  background: var(--ed-ink);
+}
+.tax-card {
+  position: relative;
+  padding: clamp(1.3rem, 2.5vw, 2rem);
+  background: var(--ed-white);
+}
+.tax-code {
+  display: inline-grid;
+  place-items: center;
+  min-width: 44px;
+  height: 30px;
+  padding-inline: .55rem;
+  border: 1px solid var(--ed-ink);
+  color: var(--ed-ink);
+  font: 800 .72rem ExEn, monospace;
+  letter-spacing: .14em;
+  direction: ltr;
+}
+.tax-card h3 { margin-block: 1rem .5rem; font-size: 1.25rem; }
+.tax-card p { color: #5f7377; font-size: .86rem; line-height: 1.8; }
+.tax-list { margin: 1.1rem 0 0; padding: 0; list-style: none; }
+.tax-list li {
+  position: relative;
+  padding-block: .5rem;
+  padding-inline-start: 1.35rem;
+  border-block-start: 1px solid #e2e6e1;
+  color: #43585d;
+  font-size: .82rem;
+  line-height: 1.75;
+}
+.tax-list li::before {
+  content: "—";
+  position: absolute;
+  inset-inline-start: 0;
+  color: var(--ed-coral);
+  font-weight: 900;
+}
+
+.tax-table-wrap {
+  margin-block-start: clamp(1.6rem, 3vw, 2.6rem);
+  overflow-x: auto;
+  border: 1px solid var(--ed-ink);
+  background: var(--ed-white);
+}
+.tax-table {
+  width: 100%;
+  min-width: 620px;
+  border-collapse: collapse;
+  text-align: start;
+}
+.tax-table caption {
+  padding: 1rem 1.2rem;
+  border-block-end: 1px solid var(--ed-ink);
+  color: var(--ed-ink);
+  font-size: .74rem;
+  font-weight: 900;
+  letter-spacing: .1em;
+  text-align: start;
+}
+.tax-table th,
+.tax-table td {
+  padding: .95rem 1.2rem;
+  border-block-end: 1px solid var(--ed-rule);
+  font-size: .82rem;
+  line-height: 1.65;
+  text-align: start;
+  vertical-align: top;
+}
+.tax-table thead th {
+  color: #66777b;
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+  background: var(--ed-paper);
+}
+.tax-table tbody th { color: var(--ed-ink); font-weight: 900; }
+.tax-table tbody tr:last-child th,
+.tax-table tbody tr:last-child td { border-block-end: 0; }
+.tax-table tbody td:nth-child(2) {
+  color: var(--ed-coral);
+  font-family: ExEn, monospace;
+  font-weight: 800;
+  direction: ltr;
+  text-align: start;
+}
+.state {
+  display: inline-block;
+  padding: .2rem .55rem;
+  border: 1px solid currentColor;
+  font-size: .68rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+.state.done { color: #0d7a55; }
+.state.partial { color: #9a5b12; }
+
+.tax-note {
+  max-width: 820px;
+  margin-block: 1.4rem 0;
+  padding-inline-start: 1rem;
+  border-inline-start: 3px solid var(--ed-coral);
+  color: #5f7377;
+  font-size: .84rem;
+  line-height: 1.85;
+}
+
+/* Free plan and support -------------------------------------------------- */
+.free-wrap {
+  display: grid;
+  gap: clamp(1.6rem, 4vw, 3.5rem);
+  align-items: center;
+}
+.free-wrap .btn { margin-block-start: 1.6rem; }
+.free-list.big {
+  gap: .6rem;
+  margin: 0;
+  padding: 0;
+}
+.free-list.big li {
+  padding: .7rem 1rem;
+  border: 1px solid var(--ed-rule);
+  color: var(--ed-ink);
+  font-size: .84rem;
+  font-weight: 800;
+}
+.text-link {
+  display: inline-block;
+  margin-block-start: .7rem;
+  border-block-end: 1px solid currentColor;
+  color: var(--ed-coral);
+  font-size: .82rem;
+  font-weight: 900;
+  direction: ltr;
+}
+html[dir="rtl"] .text-link { direction: rtl; }
+
+@media (min-width: 720px) {
+  .about-hero + .trusted .product-facts { grid-template-columns: repeat(4, 1fr); }
+  .free-list.big { grid-template-columns: repeat(2, 1fr); display: grid; }
+}
+@media (min-width: 900px) {
+  .about-hero-grid { grid-template-columns: 1.25fr .75fr; }
+  .capability-grid { grid-template-columns: repeat(2, 1fr); }
+  .tax-grid { grid-template-columns: repeat(2, 1fr); }
+  .free-wrap { grid-template-columns: 1.1fr .9fr; }
+  .timeline { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-width: 719px) {
+  .about-hero::before { font-size: clamp(90px, 26vw, 150px); }
+  .about-panel { box-shadow: 8px 8px 0 var(--ed-mint); }
+  .tax-table th,
+  .tax-table td { padding: .8rem .9rem; }
+}

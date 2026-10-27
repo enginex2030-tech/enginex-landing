@@ -8,7 +8,7 @@ const dist = path.join(root, 'dist');
 const read = (file) => fs.readFileSync(path.join(dist, file), 'utf8');
 
 test('build includes every page and local design asset', () => {
-  for (const file of ['index.html', 'about.html', 'install.html', 'offline.html', 'privacy.html', 'terms.html', 'styles.css', 'editorial.css', 'marketing.js', 'motion.js', 'motion.css', 'install.js', 'laser-scene.js', 'laser-scene.css', 'config.js', 'brand.svg', 'favicon.svg', 'icons.svg', 'screens/projects.webp', 'icons/cloud-192.png', 'icons/cloud-512.png', 'fonts/cairo-arabic.woff2', 'fonts/cairo-latin.woff2']) {
+  for (const file of ['index.html', 'about.html', 'install.html', 'offline.html', 'privacy.html', 'terms.html', 'base.css', 'about.css', 'about.js', 'legal.css', 'styles.css', 'editorial.css', 'marketing.js', 'motion.js', 'motion.css', 'install.js', 'laser-scene.js', 'laser-scene.css', 'config.js', 'brand.svg', 'favicon.svg', 'icons.svg', 'screens/projects.webp', 'icons/cloud-192.png', 'icons/cloud-512.png', 'fonts/cairo-arabic.woff2', 'fonts/cairo-latin.woff2']) {
     assert.ok(fs.existsSync(path.join(dist, file)), 'Missing dist/' + file);
   }
 });
@@ -16,7 +16,7 @@ test('build includes every page and local design asset', () => {
 test('landing page retains Arabic/English switching and responsive layouts', () => {
   const html = read('index.html');
   const js = read('marketing.js');
-  const css = html + read('styles.css');
+  const css = html + read('base.css') + read('styles.css');
   assert.match(html, /<html lang="ar" dir="rtl"/);
   assert.match(html, /<h1\b/);
   assert.match(js, /document\.documentElement\.dir/);
@@ -59,7 +59,7 @@ test('pricing and product proof contain no fabricated marketing data', () => {
   // not publish, and the three-column grid only applies when the card exists.
   assert.match(js, /freeCard=free\?`/, 'the free card must only render when the API publishes a plan');
   assert.match(js, /classList\.toggle\("with-free",Boolean\(S\.freePlan\)\)/, 'the grid must follow the published plan count');
-  assert.match(read('index.html'), /\.prices\.with-free\{max-width:1120px;grid-template-columns:repeat\(3,1fr\)\}/, 'desktop must show three cards in one row');
+  assert.match(read('base.css'), /\.prices\.with-free\{max-width:1120px;grid-template-columns:repeat\(3,1fr\)\}/, 'desktop must show three cards in one row');
   assert.match(js, /الفروع والمحاسبة المركزية/, 'branch accounting must be listed as a module');
   assert.match(js, /محاسبة الفروع/, 'the hero and FAQ must state branch accounting');
 });
@@ -149,7 +149,9 @@ test('the CSP allows exactly the inline blocks the build emits', () => {
   for (const hash of styleSrc.match(/'sha256-[^']+'/g) || []) {
     assert.ok(builtStyles.has(hash), 'CSP style hash matches no built <style> block: ' + hash);
   }
-  assert.match(conf, /style-src 'self' 'sha256-[^']+'/, 'style-src must carry the built hash');
+  // The page stylesheet is an external file now, so the policy needs no style hash
+  // at all - and must not keep one that no page produces.
+  if (!builtStyles.size) assert.ok(!/'sha256-/.test(styleSrc), 'style-src keeps a stale hash although no page has inline styles');
 });
 
 test('the static head carries the copy the page switches to at runtime', () => {
@@ -224,4 +226,63 @@ test('build output has no unresolved config markers or base64 images', () => {
   const allText = ['index.html', 'about.html', 'install.html', 'offline.html', 'privacy.html', 'terms.html', 'marketing.js', 'install.js', 'config.js'].map(read).join('\n');
   assert.ok(!allText.includes('__VITE_API_'), 'Unresolved API configuration token');
   assert.ok(!/data:image\/[^;]+;base64,/i.test(allText), 'Unexpected embedded base64 image');
+});
+
+test('every English page is English only, head intact, and switches back to Arabic', () => {
+  const files = fs.readdirSync(path.join(dist, 'en')).filter((file) => file.endsWith('.html'));
+  assert.ok(files.length >= 6, 'Expected an English twin for every page, found ' + files.length);
+  for (const file of files) {
+    const html = read('en/' + file);
+    assert.ok(!/[؀-ۿ]/.test(html), 'en/' + file + ' still contains Arabic text');
+    assert.match(html, /<html lang="en" dir="ltr"/, 'en/' + file + ' is not marked as English LTR');
+    // A head rewrite that drops a closing tag renders the head as body text.
+    const headEnd = html.indexOf('</head>');
+    const bodyStart = html.indexOf('<body');
+    assert.ok(headEnd > 0 && bodyStart > headEnd, 'en/' + file + ' has a broken head');
+    assert.ok(/^\s*$/.test(html.slice(headEnd + 7, bodyStart)), 'en/' + file + ' has markup outside the head');
+    assert.ok(!/<title>[\s\S]*?</.test(html.slice(headEnd)), 'en/' + file + ' leaked a title into the body');
+    assert.match(html, /<a\b[^>]*data-lang-link[^>]*>AR<\/a>/, 'en/' + file + ' has no link back to Arabic');
+    const back = (html.match(/<a\b[^>]*data-lang-link[^>]*>/) || [''])[0];
+    assert.match(back, /href="\/[a-z0-9.]*"/, 'en/' + file + ' language link has no Arabic target');
+    assert.match(back, /hreflang="ar"/, 'en/' + file + ' language link is not marked as Arabic');
+    // The language switch is the one link that must point back to Arabic.
+    const body = html.replace(/<a\b[^>]*data-lang-link[^>]*>[\s\S]*?<\/a>/, '');
+    for (const href of body.match(/href="(\/[^"]*)"/g) || []) {
+      const target = href.slice(6, -1);
+      assert.ok(!/^\/(about|install|privacy|terms|404|offline)\.html$/.test(target), 'en/' + file + ' links to the Arabic page ' + target);
+    }
+  }
+});
+
+test('every Arabic page offers its English twin and keeps the language choice', () => {
+  for (const file of ['index.html', 'about.html', 'install.html', 'privacy.html', 'terms.html', '404.html']) {
+    const html = read(file);
+    const expected = file === 'index.html' ? '/en/' : '/en/' + file;
+    const link = (html.match(/<a\b[^>]*data-lang-link[^>]*>/) || [''])[0];
+    assert.ok(link, file + ' has no language switch');
+    assert.ok(link.includes('href="' + expected + '"'), file + ' does not link to ' + expected);
+    assert.ok(link.includes('hreflang="en"'), file + ' does not mark the target as English');
+  }
+});
+
+test('a missing page under /en/ returns the English 404', () => {
+  const conf = read('../.deploy/default.conf');
+  assert.match(conf, /location \/en\/ \{[\s\S]*?error_page 404 \/en\/404\.html;[\s\S]*?\}/);
+});
+
+test('the sitemap lists every indexable page in both languages', () => {
+  const sitemap = read('../public/sitemap.xml');
+  const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+  for (const file of ['about.html', 'install.html', 'privacy.html', 'terms.html']) {
+    assert.ok(locs.includes('https://enginex2030.com/' + file), 'sitemap is missing /' + file);
+    assert.ok(locs.includes('https://enginex2030.com/en/' + file), 'sitemap is missing /en/' + file);
+  }
+  // Each URL must advertise both languages so the twins are not treated as duplicates.
+  const blocks = sitemap.split('<url>').slice(1);
+  assert.strictEqual(blocks.length, locs.length);
+  for (const block of blocks) {
+    assert.match(block, /hreflang="ar"/, 'sitemap URL has no Arabic alternate');
+    assert.match(block, /hreflang="en"/, 'sitemap URL has no English alternate');
+  }
+  assert.ok(!locs.some((loc) => /404|offline/.test(loc)), 'sitemap must not list error pages');
 });

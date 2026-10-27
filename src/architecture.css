@@ -62,3 +62,8 @@ body { background:#f4f1ea; color:#17282e; }
 .header .brand img.brand-logo { width:auto; height:40px; filter:none; }
 .footer .brand img.brand-logo { width:auto; height:36px; }
 @media(max-width:480px) { .header .brand img.brand-logo { height:30px; } }
+
+/* The product screenshots are captured from the Arabic build, so the English
+   page says so instead of pretending the image is localized. */
+.shot-note{margin:10px 0 0;font-size:13px;line-height:1.7;color:var(--muted,#5b6b73);text-align:center}
+.shot-note:empty{display:none}

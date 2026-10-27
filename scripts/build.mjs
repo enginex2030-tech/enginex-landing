@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
+import { pages as englishPages, shared as englishShared } from './pages-en.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const sourceDir = path.join(root, 'src');
@@ -100,11 +101,136 @@ function localizeEnglish(html, en) {
   page = replaceOnce(page, /(<meta property="og:locale" content=")ar_SA"/, '$1en_US"');
   page = replaceOnce(page, /(<meta property="og:locale:alternate" content=")en_US"/, '$1ar_SA"');
   page = replaceOnce(page, /(<meta property="og:url" content=")[^"]*"/, '$1https://enginex2030.com/en/"');
-  page = replaceOnce(page, /(<button class="tool" id="lang"[^>]*>)EN</, '$1AR<');
-  return page.replace(/(<([a-z0-9]+)\b[^>]*\bdata-i="([^"]+)"[^>]*>)[^<]*(<\/\2>)/g, (whole, open, tag, key, close) => {
-    if (!(key in en)) throw new Error('English page build: missing translation for data-i="' + key + '"');
-    return open + escapeHtml(en[key]) + close;
+  page = localizeDataI(page, en, 'index.html');
+  page = localizeAria(page, en, 'index.html');
+  // The fact strip ships both languages and lets CSS pick one. On the English
+  // page the Arabic copies are dead weight, so they are removed here.
+  page = page.replace(/<b class="ar">[^<]*<\/b>/g, '');
+  page = localizeLinks(page);
+  return localizeLangLink(page, '/');
+}
+
+// Reads a top-level array literal (faq:[...]) out of marketing.js so the FAQ
+// structured data is generated from the same copy the page shows. Hand-written
+// JSON-LD drifted from the visible FAQ and left Arabic questions on /en/.
+function readArrayLiteral(source, key) {
+  const start = source.indexOf(key + ':[');
+  if (start < 0) throw new Error('marketing.js has no ' + key + ' array');
+  const open = source.indexOf('[', start);
+  let depth = 0;
+  let inString = false;
+  let quote = '';
+  let escaped = false;
+  for (let i = open; i < source.length; i += 1) {
+    const ch = source[i];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (ch === '\\') escaped = true;
+      else if (ch === quote) inString = false;
+      continue;
+    }
+    if (ch === '"' || ch === "'") { inString = true; quote = ch; continue; }
+    if (ch === '[') depth += 1;
+    else if (ch === ']') {
+      depth -= 1;
+      if (depth === 0) return JSON.parse(source.slice(open, i + 1).replace(/'/g, '"'));
+    }
+  }
+  throw new Error('marketing.js has an unterminated ' + key + ' array');
+}
+
+// The FAQPage node is rewritten in the page's own language, from that array.
+function replaceFaqJsonLd(html, faq, language) {
+  const index = language === 'en' ? 1 : 0;
+  return html.replace(/(<script type="application\/ld\+json">)([\s\S]*?)(<\/script>)/, (whole, open, body, close) => {
+    let data;
+    try { data = JSON.parse(body); } catch { return whole; }
+    const nodes = data['@graph'] || [data];
+    const node = nodes.find((item) => item && item['@type'] === 'FAQPage');
+    if (!node) return whole;
+    node.mainEntity = faq.map((item) => ({
+      '@type': 'Question',
+      name: item[index],
+      acceptedAnswer: { '@type': 'Answer', text: item[index + 2] },
+    }));
+    return open + JSON.stringify(data) + close;
   });
+}
+
+// Every text node that carries a data-i key is written in the target language.
+// A key without copy is a build failure: a half-translated page must never ship.
+function localizeDataI(html, table, file, strict = true) {
+  return html.replace(/(<([a-z0-9]+)\b[^>]*\bdata-i="([^"]+)"[^>]*>)[^<]*(<\/\2>)/g, (whole, open, tag, key, close) => {
+    if (!(key in table)) {
+      if (!strict) return whole;
+      throw new Error(file + ': missing English copy for data-i="' + key + '"');
+    }
+    return open + escapeHtml(table[key]) + close;
+  });
+}
+
+// aria-label carries visible copy for screen readers, so it is translated too.
+function localizeAria(html, table, file) {
+  return html.replace(/<[a-z0-9]+\b[^>]*\bdata-i-aria="([^"]+)"[^>]*>/g, (tag, key) => {
+    if (!(key in table)) throw new Error(file + ': missing English copy for data-i-aria="' + key + '"');
+    return tag.replace(/aria-label="[^"]*"/, 'aria-label="' + escapeHtml(table[key]) + '"');
+  });
+}
+
+// The same page, in the other language. Every internal link is rewritten so a
+// visitor who chose English never lands on an Arabic page from the English one.
+const englishPaths = new Map([
+  ['/', '/en/'],
+  ['/index.html', '/en/'],
+  ['/about.html', '/en/about.html'],
+  ['/install.html', '/en/install.html'],
+  ['/privacy.html', '/en/privacy.html'],
+  ['/terms.html', '/en/terms.html'],
+  ['/404.html', '/en/404.html'],
+  ['/offline.html', '/en/offline.html'],
+]);
+
+function localizeLinks(html) {
+  return html.replace(/href="([^"]+)"/g, (whole, href) => {
+    if (href.startsWith('/en/')) return whole;
+    const hashAt = href.indexOf('#');
+    const pathPart = hashAt >= 0 ? href.slice(0, hashAt) : href;
+    const hash = hashAt >= 0 ? href.slice(hashAt) : '';
+    if (!englishPaths.has(pathPart)) return whole;
+    return 'href="' + englishPaths.get(pathPart) + hash + '"';
+  });
+}
+
+// The language switch is a plain link to the twin of the current page, so the
+// choice made on the landing page carries through the whole site.
+function localizeLangLink(html, arabicPath) {
+  return html.replace(/(<a\b[^>]*\bdata-lang-link\b[^>]*>)([^<]*)(<\/a>)/g, (whole, open, text, close) => {
+    const next = open.replace(/href="[^"]*"/, 'href="' + arabicPath + '"').replace(/hreflang="[^"]*"/, 'hreflang="ar"');
+    return next + 'AR' + close;
+  });
+}
+
+// Head metadata for a page that is generated in both languages from one source.
+function applyPageHead(html, entry, url) {
+  // open + old value + close: the closing tag must survive, or the whole head
+  // ends up rendered as body text.
+  const set = (page, pattern, value) => {
+    if (!pattern.test(page)) throw new Error('Page head: pattern not found ' + pattern);
+    return page.replace(pattern, (whole, open, old, close) => open + escapeHtml(value) + close);
+  };
+  let page = html;
+  page = set(page, /(<title>)([^<]*)(<\/title>)/, entry.title);
+  page = set(page, /(<meta name="description" content=")([^"]*)(")/, entry.description);
+  page = set(page, /(<meta property="og:title" content=")([^"]*)(")/, entry.ogTitle || entry.title);
+  page = set(page, /(<meta property="og:description" content=")([^"]*)(")/, entry.ogDescription || entry.description);
+  page = page.replace(/(<meta name="twitter:title" content=")[^"]*"/, '$1' + escapeHtml(entry.title) + '"');
+  page = set(page, /(<meta property="og:url" content=")([^"]*)(")/, url);
+  page = set(page, /(<link rel="canonical" href=")([^"]*)(")/, url);
+  page = page.replace(/(<meta property="og:locale" content=")ar_SA"/, '$1en_US"');
+  page = page.replace(/(<meta property="og:locale:alternate" content=")en_US"/, '$1ar_SA"');
+  page = page.replace(/<html lang="ar" dir="rtl"/, '<html lang="en" dir="ltr"');
+  if (entry.jsonLd) page = page.replace(/(<script type="application\/ld\+json">)[\s\S]*?(<\/script>)/, (whole, open, close) => open + entry.jsonLd + close);
+  return page;
 }
 
 // Pre-splits data-split headings into word spans so the hero word reveal starts on first paint.
@@ -202,15 +328,41 @@ const cspText = (text) => String(text).replace(/\r\n?/g, '\n');
 const cspHash = (text) => `'sha256-${createHash('sha256').update(cspText(text), 'utf8').digest('base64')}'`;
 
 async function collectInlineHashes() {
-  const pages = await Promise.all(
-    [path.join(distDir, 'index.html'), path.join(distDir, 'en', 'index.html')]
-      .map(async (file) => inlineBlocks(await readFile(file, 'utf8'))),
-  );
+  const files = await htmlFiles(distDir);
+  const pages = await Promise.all(files.map(async (file) => inlineBlocks(await readFile(file, 'utf8'))));
   const styles = [...new Set(pages.flatMap((page) => page.styles.map(cspHash)))];
   const scripts = [...new Set(pages.flatMap((page) => page.scripts.map(cspHash)))];
-  if (!styles.length) throw new Error('CSP build: no inline <style> block was found in the built pages.');
-  if (!scripts.length) throw new Error('CSP build: no inline <script> block was found in the built pages.');
+  // Styles now live in base.css, so a page with an inline <style> but no extracted
+  // hash would mean the extractor stopped matching and the policy would block it.
+  if (pages.some((page) => page.styles.length) && !styles.length) {
+    throw new Error('CSP build: inline <style> blocks were found but no hash was produced.');
+  }
   return { styles: styles.join(' '), scripts: scripts.join(' ') };
+}
+
+// Every built page is covered by the policy, not only the landing page: a new
+// page with an inline script must not silently fall outside the hash list.
+async function htmlFiles(directory) {
+  const found = [];
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    const file = path.join(directory, entry.name);
+    if (entry.isDirectory()) found.push(...(await htmlFiles(file)));
+    else if (entry.isFile() && entry.name.endsWith('.html')) found.push(file);
+  }
+  return found;
+}
+
+// A head rewrite that loses a closing tag turns the whole head into visible
+// body text. That shipped once; it must fail the build instead.
+function assertHeadIntact(html, file) {
+  const head = html.slice(0, html.indexOf('</head>') + 7);
+  if (!head.endsWith('</head>')) throw new Error(file + ': the English page has no closed head.');
+  for (const tag of ['title', 'style', 'script']) {
+    const open = (head.match(new RegExp('<' + tag + '[ >]', 'g')) || []).length;
+    const close = (head.match(new RegExp('</' + tag + '>', 'g')) || []).length;
+    if (open !== close) throw new Error(file + ': unbalanced <' + tag + '> in the English head.');
+  }
+  if (/<\/head>[\s\S]*<title>/.test(html)) throw new Error(file + ': a title leaked into the body.');
 }
 
 async function writeNginxConfig(apiBase) {
@@ -259,11 +411,26 @@ await mkdir(path.join(distDir, 'en'), { recursive: true });
 const translations = await readTranslations();
 const arabicIndex = applyHeadCopy(await readFile(path.join(sourceDir, 'index.html'), 'utf8'), translations.ar, 'ar');
 const marketingSource = await readFile(path.join(sourceDir, 'marketing.js'), 'utf8');
+const faq = readArrayLiteral(marketingSource, 'faq');
 const plansPayload = await fetchPlans(apiBase);
 const renderedAr = await renderSections(marketingSource, 'ar', plansPayload);
 const renderedEn = await renderSections(marketingSource, 'en', plansPayload);
-await writeFile(path.join(distDir, 'en', 'index.html'), splitWords(prerenderSections(localizeEnglish(arabicIndex, translations.en), renderedEn)));
-await writeFile(path.join(distDir, 'index.html'), splitWords(prerenderSections(arabicIndex, renderedAr)));
+await writeFile(path.join(distDir, 'en', 'index.html'), splitWords(prerenderSections(replaceFaqJsonLd(localizeEnglish(arabicIndex, translations.en), faq, 'en'), renderedEn)));
+await writeFile(path.join(distDir, 'index.html'), splitWords(prerenderSections(replaceFaqJsonLd(localizeDataI(arabicIndex, translations.ar, 'index.html', false), faq, 'ar'), renderedAr)));
+// Every other page exists in both languages from the same Arabic source. The
+// English twin keeps the same layout and links only to English pages.
+const englishTable = { ...translations.en, ...englishShared };
+for (const [file, entry] of Object.entries(englishPages)) {
+  const source = await readFile(path.join(sourceDir, file), 'utf8');
+  const table = { ...englishTable, ...entry.items };
+  let page = applyPageHead(source, entry, 'https://enginex2030.com/en/' + file);
+  page = localizeDataI(page, table, file);
+  page = localizeAria(page, table, file);
+  page = localizeLinks(page);
+  page = localizeLangLink(page, '/' + file);
+  assertHeadIntact(page, file);
+  await writeFile(path.join(distDir, 'en', file), page);
+}
 await copyContents(publicDir, distDir);
 // Keep existing public asset URLs usable by saved links and installer pages.
 await copyContents(path.join(root, 'assets'), path.join(distDir, 'assets'));

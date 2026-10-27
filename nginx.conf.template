@@ -32,7 +32,7 @@ server {
   add_header X-Content-Type-Options nosniff always;
   add_header Referrer-Policy strict-origin-when-cross-origin always;
   add_header Cache-Control $ex_cache_control always;
-  add_header Content-Security-Policy "default-src 'self'; script-src 'self' __CSP_SCRIPT_HASHES__ https://www.googletagmanager.com https://pagead2.googlesyndication.com https://cdn.tailwindcss.com https://code.iconify.design https://cdnjs.cloudflare.com; connect-src 'self' __VITE_API_BASE_URL__ https://www.google-analytics.com https://region1.google-analytics.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://api.iconify.design https://cdn.tailwindcss.com; style-src 'self' __CSP_STYLE_HASHES__ 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://hoirqrkdgbmvpwutwuwj.supabase.co; font-src 'self' https://fonts.gstatic.com; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" always;
+  add_header Content-Security-Policy "default-src 'self'; script-src 'self' __CSP_SCRIPT_HASHES__ https://www.googletagmanager.com https://pagead2.googlesyndication.com https://cdn.tailwindcss.com https://code.iconify.design https://cdnjs.cloudflare.com; connect-src 'self' __VITE_API_BASE_URL__ https://www.google-analytics.com https://region1.google-analytics.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://api.iconify.design https://cdn.tailwindcss.com; style-src 'self' __CSP_STYLE_HASHES__ https://fonts.googleapis.com; img-src 'self' data: https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://hoirqrkdgbmvpwutwuwj.supabase.co; font-src 'self' https://fonts.gstatic.com; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" always;
 
   if ($ex_needs_redirect) {
     return 301 https://$ex_canonical_host$request_uri;
@@ -42,6 +42,17 @@ server {
 
   location = /404.html {
     internal;
+  }
+
+  location = /en/404.html {
+    internal;
+  }
+
+  # English pages get the English error page, so a missing URL never drops the
+  # visitor back into Arabic.
+  location /en/ {
+    error_page 404 /en/404.html;
+    try_files $uri $uri/ =404;
   }
 
   # Serve the redesigned landing page at the original PHP URLs as HTML.

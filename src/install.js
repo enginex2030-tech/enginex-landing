@@ -18,6 +18,10 @@
   const CHANNEL_PATH = '/desktop-updates/';
   const STABLE_DOWNLOAD = `${CHANNEL_ORIGIN}${CHANNEL_PATH}latest`;
   const REQUEST_TIMEOUT_MS = 8000;
+  // The page is served twice, once per language, and the markup already carries
+  // the right text. Only the values this script writes need the language.
+  const ENGLISH = String(document.documentElement.lang || '').toLowerCase().startsWith('en');
+  const t = (arabic, english) => (ENGLISH ? english : arabic);
 
   const elements = {
     anchor: document.querySelector('[data-release-anchor]'),
@@ -47,7 +51,7 @@
 
   const formatSize = (bytes) => {
     if (!Number.isFinite(bytes) || bytes <= 0) return '';
-    return `${(bytes / (1024 * 1024)).toFixed(1)} ميجابايت`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} ${t('ميجابايت', 'MB')}`;
   };
 
   const fingerprint = (sha512) => {
@@ -74,13 +78,16 @@
     }
     setText(
       elements.note,
-      'التنزيل من الخادم الرسمي عبر اتصال مشفّر، ويتضمّن التطبيق تحديثاً تلقائياً بعد التثبيت.'
+      t(
+        'التنزيل من الخادم الرسمي عبر اتصال مشفّر، ويتضمّن التطبيق تحديثاً تلقائياً بعد التثبيت.',
+        'The download comes from the official server over an encrypted connection, and the app updates itself after installation.'
+      )
     );
     if (elements.state) elements.state.hidden = true;
   };
 
   const renderUnavailable = (reason) => {
-    setText(elements.anchor, 'افتح صفحة التحميل');
+    setText(elements.anchor, t('افتح صفحة التحميل', 'Open the download page'));
     setText(elements.version, '');
     setText(elements.size, '');
     setText(elements.hash, '');
@@ -94,10 +101,10 @@
     if (!hash) return;
     try {
       await navigator.clipboard.writeText(hash);
-      setText(elements.copy, 'تم نسخ البصمة');
-      window.setTimeout(() => setText(elements.copy, 'نسخ البصمة'), 2500);
+      setText(elements.copy, t('تم نسخ البصمة', 'Fingerprint copied'));
+      window.setTimeout(() => setText(elements.copy, t('نسخ البصمة', 'Copy fingerprint')), 2500);
     } catch (error) {
-      setText(elements.copy, 'تعذّر النسخ — حدّده يدوياً');
+      setText(elements.copy, t('تعذّر النسخ — حدّده يدوياً', 'Copy failed — select it manually'));
     }
   });
 
@@ -114,11 +121,21 @@
       if (release && release.published === true) {
         render(release);
       } else {
-        renderUnavailable('لم يُنشر إصدار ويندوز بعد. زر التنزيل أدناه يفتح أحدث ما نُشر.');
+        renderUnavailable(
+          t(
+            'لم يُنشر إصدار ويندوز بعد. زر التنزيل أدناه يفتح أحدث ما نُشر.',
+            'No Windows release has been published yet. The download button below opens the latest release.'
+          )
+        );
       }
     })
     .catch(() => {
       window.clearTimeout(timer);
-      renderUnavailable('تعذّر قراءة تفاصيل الإصدار. زر التنزيل يعمل مباشرةً.');
+      renderUnavailable(
+        t(
+          'تعذّر قراءة تفاصيل الإصدار. زر التنزيل يعمل مباشرةً.',
+          'Could not read the release details. The download button still works.'
+        )
+      );
     });
 })();
