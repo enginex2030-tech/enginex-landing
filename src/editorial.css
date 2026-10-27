@@ -331,3 +331,7 @@ h1 {
   .faq details { display: block; }
   .faq p { padding-block-start: 0; }
 }
+
+/* CTA under the price grid. Styled here, not with a style attribute: an inline
+   attribute is blocked whenever the CSP carries a style hash. */
+.price-note { text-align: center; margin-block-start: 20px; }

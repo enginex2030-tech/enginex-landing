@@ -106,6 +106,69 @@ test('missing pages return a real 404 instead of the homepage', () => {
   assert.ok(!read('offline.html').includes('href="/owner-login"'), 'Offline page links to a path that now 404s');
 });
 
+test('the CSP allows exactly the inline blocks the build emits', () => {
+  const crypto = require('node:crypto');
+  const conf = read('../.deploy/default.conf');
+  const directive = (name) => {
+    const match = conf.match(new RegExp(name + '\\s+([^;]+);'));
+    assert.ok(match, 'CSP is missing ' + name);
+    return match[1];
+  };
+  // The same extraction the build uses, so a hash cannot drift from its block.
+  const hashesIn = (page) => {
+    const styles = [];
+    const scripts = [];
+    for (const match of page.matchAll(/<style(?:\s[^>]*)?>([\s\S]*?)<\/style>/gi)) styles.push(match[1]);
+    for (const match of page.matchAll(/<script(?![^>]*\bsrc=)([^>]*)>([\s\S]*?)<\/script>/gi)) {
+      if (/type\s*=\s*["']application\/ld\+json["']/i.test(match[1])) continue;
+      scripts.push(match[2]);
+    }
+    // The browser normalises newlines before hashing, so the digest is taken
+    // from the normalised text (a CRLF file would otherwise never match).
+    const hash = (text) => "'sha256-" + crypto.createHash('sha256').update(text.replace(/\r\n?/g, '\n'), 'utf8').digest('base64') + "'";
+    return { styles: styles.map(hash), scripts: scripts.map(hash) };
+  };
+  const styleSrc = directive('style-src');
+  const scriptSrc = directive('script-src');
+  const builtStyles = new Set();
+  for (const file of ['index.html', 'en/index.html']) {
+    const page = read(file);
+    const found = hashesIn(page);
+    for (const hash of found.styles) {
+      builtStyles.add(hash);
+      assert.ok(styleSrc.includes(hash), file + ': inline <style> is not allowed by the CSP (' + hash + ')');
+    }
+    for (const hash of found.scripts) {
+      assert.ok(scriptSrc.includes(hash), file + ': inline <script> is not allowed by the CSP (' + hash + ')');
+    }
+    // A style attribute is not covered by a style hash, so the page must not use one.
+    assert.ok(!/<[^>]+\sstyle="/.test(page), file + ': inline style attribute is blocked by the CSP');
+  }
+  // The exact outage this guards: a leftover hash silently disables 'unsafe-inline'
+  // and the browser drops the whole stylesheet, so the page renders unstyled.
+  for (const hash of styleSrc.match(/'sha256-[^']+'/g) || []) {
+    assert.ok(builtStyles.has(hash), 'CSP style hash matches no built <style> block: ' + hash);
+  }
+  assert.match(conf, /style-src 'self' 'sha256-[^']+'/, 'style-src must carry the built hash');
+});
+
+test('the static head carries the copy the page switches to at runtime', () => {
+  const source = fs.readFileSync(path.join(root, 'src', 'marketing.js'), 'utf8');
+  const table = source.match(/T=(\{ar:\{.*?\},en:\{.*?\}\});const D=/s);
+  assert.ok(table, 'marketing.js translation table T was not found');
+  const T = new Function('return ' + table[1])();
+  const escape = (value) => String(value).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  for (const [file, copy] of [['index.html', T.ar], ['en/index.html', T.en]]) {
+    const page = read(file);
+    const title = escape(copy.metaTitle);
+    const description = escape(copy.metaDesc);
+    assert.ok(page.includes('<title>' + title + '</title>'), file + ': static title differs from the runtime copy');
+    assert.ok(page.includes('<meta name="description" content="' + description + '">'), file + ': static description differs from the runtime copy');
+    assert.ok(page.includes('<meta property="og:title" content="' + title + '">'), file + ': og:title differs from the runtime copy');
+    assert.ok(page.includes('<meta property="og:description" content="' + description + '">'), file + ': og:description differs from the runtime copy');
+  }
+});
+
 test('core homepage sections are in the initial HTML for both languages', () => {
   const ar = read('index.html');
   const en = read('en/index.html');

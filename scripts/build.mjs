@@ -1,4 +1,5 @@
 import { cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
@@ -67,6 +68,26 @@ async function readTranslations() {
   return new Function('return ' + match[1])();
 }
 
+// marketing.js rewrites the title and description from T when the page loads, so
+// the static head has to carry the same strings. Otherwise the correct copy only
+// appears after JavaScript runs - and never for a crawler or a shared link card.
+function applyHeadCopy(html, copy, language) {
+  const replaceOnce = (value, pattern, replacement) => {
+    if (!pattern.test(value)) throw new Error('Head copy: pattern not found ' + pattern);
+    return value.replace(pattern, replacement);
+  };
+  const title = escapeHtml(copy.metaTitle);
+  const description = escapeHtml(copy.metaDesc);
+  let page = html;
+  page = replaceOnce(page, /<title>[^<]*<\/title>/, `<title>${title}</title>`);
+  page = replaceOnce(page, /(<meta name="description" content=")[^"]*"/, `$1${description}"`);
+  page = replaceOnce(page, /(<meta property="og:title" content=")[^"]*"/, `$1${title}"`);
+  page = replaceOnce(page, /(<meta property="og:description" content=")[^"]*"/, `$1${description}"`);
+  page = replaceOnce(page, /(<meta name="twitter:title" content=")[^"]*"/, `$1${title}"`);
+  if (language === 'en') page = replaceOnce(page, /<html lang="ar" dir="rtl"/, '<html lang="en" dir="ltr"');
+  return page;
+}
+
 // Turns the Arabic index.html into a crawlable English page: language,
 // direction, head metadata and every data-i text node are written statically.
 function localizeEnglish(html, en) {
@@ -74,14 +95,10 @@ function localizeEnglish(html, en) {
     if (!pattern.test(value)) throw new Error('English page build: pattern not found ' + pattern);
     return value.replace(pattern, replacement);
   };
-  let page = html;
-  page = replaceOnce(page, /<html lang="ar" dir="rtl"/, '<html lang="en" dir="ltr"');
-  page = replaceOnce(page, /<title>[^<]*<\/title>/, `<title>${escapeHtml(en.metaTitle)}</title>`);
-  page = replaceOnce(page, /(<meta name="description" content=")[^"]*"/, `$1${escapeHtml(en.metaDesc)}"`);
+  let page = applyHeadCopy(html, en, 'en');
   page = replaceOnce(page, /(<link rel="canonical" href=")[^"]*"/, '$1https://enginex2030.com/en/"');
   page = replaceOnce(page, /(<meta property="og:locale" content=")ar_SA"/, '$1en_US"');
   page = replaceOnce(page, /(<meta property="og:locale:alternate" content=")en_US"/, '$1ar_SA"');
-  page = replaceOnce(page, /(<meta property="og:title" content=")[^"]*"/, `$1${escapeHtml(en.metaTitle)}"`);
   page = replaceOnce(page, /(<meta property="og:url" content=")[^"]*"/, '$1https://enginex2030.com/en/"');
   page = replaceOnce(page, /(<button class="tool" id="lang"[^>]*>)EN</, '$1AR<');
   return page.replace(/(<([a-z0-9]+)\b[^>]*\bdata-i="([^"]+)"[^>]*>)[^<]*(<\/\2>)/g, (whole, open, tag, key, close) => {
@@ -159,6 +176,58 @@ function prerenderSections(html, rendered) {
   return page;
 }
 
+// A Content-Security-Policy hash is the digest of one exact inline block. A hash
+// that no longer matches does not degrade gracefully: the browser drops the whole
+// <style> block and the page loses its layout and its Arabic font. So the policy
+// is generated from the pages that were just written, for both languages, instead
+// of being pasted into the template by hand.
+const inlineBlocks = (html) => {
+  const styles = [];
+  const scripts = [];
+  for (const match of html.matchAll(/<style(?:\s[^>]*)?>([\s\S]*?)<\/style>/gi)) styles.push(match[1]);
+  for (const match of html.matchAll(/<script(?![^>]*\bsrc=)([^>]*)>([\s\S]*?)<\/script>/gi)) {
+    // JSON-LD is data, never executed, so it needs no script hash.
+    if (/type\s*=\s*["']application\/ld\+json["']/i.test(match[1])) continue;
+    scripts.push(match[2]);
+  }
+  return { styles, scripts };
+};
+
+// A browser normalises CRLF and lone CR to LF before it hashes an inline block,
+// so the digest has to be taken from the normalised text. Hashing the raw file
+// bytes produces a hash the browser never computes - which is exactly how a
+// stylesheet gets blocked while looking "correct" in the config.
+const cspText = (text) => String(text).replace(/\r\n?/g, '\n');
+
+const cspHash = (text) => `'sha256-${createHash('sha256').update(cspText(text), 'utf8').digest('base64')}'`;
+
+async function collectInlineHashes() {
+  const pages = await Promise.all(
+    [path.join(distDir, 'index.html'), path.join(distDir, 'en', 'index.html')]
+      .map(async (file) => inlineBlocks(await readFile(file, 'utf8'))),
+  );
+  const styles = [...new Set(pages.flatMap((page) => page.styles.map(cspHash)))];
+  const scripts = [...new Set(pages.flatMap((page) => page.scripts.map(cspHash)))];
+  if (!styles.length) throw new Error('CSP build: no inline <style> block was found in the built pages.');
+  if (!scripts.length) throw new Error('CSP build: no inline <script> block was found in the built pages.');
+  return { styles: styles.join(' '), scripts: scripts.join(' ') };
+}
+
+async function writeNginxConfig(apiBase) {
+  const hashes = await collectInlineHashes();
+  const template = await readFile(path.join(root, 'nginx.conf.template'), 'utf8');
+  for (const token of ['__VITE_API_BASE_URL__', '__CSP_SCRIPT_HASHES__', '__CSP_STYLE_HASHES__']) {
+    if (!template.includes(token)) throw new Error('nginx.conf.template is missing ' + token + '.');
+  }
+  const config = template
+    .replaceAll('__CSP_SCRIPT_HASHES__', hashes.scripts)
+    .replaceAll('__CSP_STYLE_HASHES__', hashes.styles)
+    .replaceAll('__VITE_API_BASE_URL__', apiBase);
+  if (/__[A-Z][A-Z0-9_]*__/.test(config)) throw new Error('nginx.conf.template has an unreplaced token.');
+  await writeFile(path.join(deployDir, 'default.conf'), config);
+  console.log('CSP hashes: ' + hashes.styles + ' ' + hashes.scripts);
+}
+
 async function replaceTokens(directory, apiBase, apiHost) {
   const textExtensions = new Set(['.html', '.js', '.css', '.xml', '.txt', '.svg', '.webmanifest']);
   for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -188,7 +257,7 @@ await copyContents(sourceDir, distDir);
 // Publish a stable English URL so Google can index it as a separate language version.
 await mkdir(path.join(distDir, 'en'), { recursive: true });
 const translations = await readTranslations();
-const arabicIndex = await readFile(path.join(sourceDir, 'index.html'), 'utf8');
+const arabicIndex = applyHeadCopy(await readFile(path.join(sourceDir, 'index.html'), 'utf8'), translations.ar, 'ar');
 const marketingSource = await readFile(path.join(sourceDir, 'marketing.js'), 'utf8');
 const plansPayload = await fetchPlans(apiBase);
 const renderedAr = await renderSections(marketingSource, 'ar', plansPayload);
@@ -199,7 +268,5 @@ await copyContents(publicDir, distDir);
 // Keep existing public asset URLs usable by saved links and installer pages.
 await copyContents(path.join(root, 'assets'), path.join(distDir, 'assets'));
 await replaceTokens(distDir, apiBase, apiHost);
-const nginxTemplate = await readFile(path.join(root, 'nginx.conf.template'), 'utf8');
-if (!nginxTemplate.includes('__VITE_API_BASE_URL__')) throw new Error('nginx.conf.template is missing the API origin token.');
-await writeFile(path.join(deployDir, 'default.conf'), nginxTemplate.replaceAll('__VITE_API_BASE_URL__', apiBase));
+await writeNginxConfig(apiBase);
 console.log('Built dist/ with VITE_API_BASE_URL=' + apiBase);
