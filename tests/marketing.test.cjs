@@ -51,6 +51,12 @@ test('pricing and product proof contain no fabricated marketing data', () => {
   assert.ok(!js.includes('أضف اسم العميل'), 'Customer testimonial placeholder remains');
   assert.match(js, /دليل المنتج قبل الشراء/);
   assert.match(js, /Number\(x\.annualPrice\)>0&&Number\(x\.biennialPrice\)>0/);
+  // The acquisition tier is real: a free card is read from the plans API and
+  // rendered ahead of the paid terms, and branch accounting is a listed module.
+  assert.match(js, /S\.freePlan=list\.find/, 'the free plan must be read from the plans API');
+  assert.match(js, /class="pricecard free"/, 'the free acquisition card must be rendered');
+  assert.match(js, /الفروع والمحاسبة المركزية/, 'branch accounting must be listed as a module');
+  assert.match(js, /محاسبة الفروع/, 'the hero and FAQ must state branch accounting');
 });
 
 test('English URL is a static English page with its own canonical and shared hreflang', () => {
@@ -60,7 +66,7 @@ test('English URL is a static English page with its own canonical and shared hre
   assert.match(en, /<link rel="canonical" href="https:\/\/enginex2030\.com\/en\/">/);
   assert.match(en, /<meta property="og:locale" content="en_US">/);
   const heading = (en.match(/data-i="heroH"[^>]*>(.*?)<\/h1>/) || [])[1]?.replace(/<[^>]+>/g, '') || '';
-  assert.match(heading, /^Know every project’s real margin/);
+  assert.match(heading, /^Run every branch, project, and margin/);
   assert.ok(!/[؀-ۿ]/.test(heading), 'English hero heading still contains Arabic');
   assert.match(ar, /<link rel="canonical" href="https:\/\/enginex2030\.com\/">/);
   for (const page of [ar, en]) {
