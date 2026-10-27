@@ -55,6 +55,11 @@ test('pricing and product proof contain no fabricated marketing data', () => {
   // rendered ahead of the paid terms, and branch accounting is a listed module.
   assert.match(js, /S\.freePlan=list\.find/, 'the free plan must be read from the plans API');
   assert.match(js, /class="pricecard free"/, 'the free acquisition card must be rendered');
+  // The card is conditional, so the page can never advertise a plan the API did
+  // not publish, and the three-column grid only applies when the card exists.
+  assert.match(js, /freeCard=free\?`/, 'the free card must only render when the API publishes a plan');
+  assert.match(js, /classList\.toggle\("with-free",Boolean\(S\.freePlan\)\)/, 'the grid must follow the published plan count');
+  assert.match(read('index.html'), /\.prices\.with-free\{max-width:1120px;grid-template-columns:repeat\(3,1fr\)\}/, 'desktop must show three cards in one row');
   assert.match(js, /الفروع والمحاسبة المركزية/, 'branch accounting must be listed as a module');
   assert.match(js, /محاسبة الفروع/, 'the hero and FAQ must state branch accounting');
 });
