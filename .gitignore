@@ -4,3 +4,6 @@ dist/
 .env
 .env.*
 !.env.example
+
+# Local editor launch configuration, not part of the site.
+.claude/
