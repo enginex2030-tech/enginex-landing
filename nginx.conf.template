@@ -1,9 +1,17 @@
 # Cache policy by path. Files under /media/ carry a version in their name, so
 # they can be cached for a year; an empty value sends no Cache-Control header.
+# Fonts do not change. Logos and screenshots can, so they get 30 days, and
+# stylesheets and scripts get one day. config.js and seo.js have no version in
+# their URL and stay uncached, as does HTML.
 map $uri $ex_cache_control {
   default "";
   /sw.js "no-cache";
+  /config.js "";
+  /seo.js "";
   ~^/media/ "public, max-age=31536000, immutable";
+  ~^/fonts/ "public, max-age=31536000, immutable";
+  ~^/(logo|screens)/ "public, max-age=2592000";
+  ~\.(css|js)$ "public, max-age=86400";
 }
 
 # The proxy in front of this container terminates TLS and reports the original

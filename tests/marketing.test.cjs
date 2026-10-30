@@ -168,6 +168,7 @@ test('the static head carries the copy the page switches to at runtime', () => {
     assert.ok(page.includes('<meta name="description" content="' + description + '">'), file + ': static description differs from the runtime copy');
     assert.ok(page.includes('<meta property="og:title" content="' + title + '">'), file + ': og:title differs from the runtime copy');
     assert.ok(page.includes('<meta property="og:description" content="' + description + '">'), file + ': og:description differs from the runtime copy');
+    assert.ok(page.includes('<meta name="twitter:description" content="' + description + '">'), file + ': twitter:description differs from the runtime copy');
   }
 });
 

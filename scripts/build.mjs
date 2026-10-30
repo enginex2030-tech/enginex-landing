@@ -85,6 +85,7 @@ function applyHeadCopy(html, copy, language) {
   page = replaceOnce(page, /(<meta property="og:title" content=")[^"]*"/, `$1${title}"`);
   page = replaceOnce(page, /(<meta property="og:description" content=")[^"]*"/, `$1${description}"`);
   page = replaceOnce(page, /(<meta name="twitter:title" content=")[^"]*"/, `$1${title}"`);
+  page = replaceOnce(page, /(<meta name="twitter:description" content=")[^"]*"/, `$1${description}"`);
   if (language === 'en') page = replaceOnce(page, /<html lang="ar" dir="rtl"/, '<html lang="en" dir="ltr"');
   return page;
 }
